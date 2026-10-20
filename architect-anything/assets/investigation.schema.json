@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Architect Anything investigation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "mode", "question", "target", "created_at", "status", "paths", "checklist", "inventory_options", "previous_report"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^run-[A-Za-z0-9_-]+$"},
+    "mode": {"enum": ["catch-up", "focus"]},
+    "question": {"type": ["string", "null"]},
+    "target": {"type": "object"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["investigating", "complete", "partial", "interrupted"]},
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report", "evidence", "output", "inventory_start", "inventory_end"],
+      "properties": {
+        "report": {"type": "string"},
+        "evidence": {"type": "string"},
+        "output": {"type": "string"},
+        "inventory_start": {"type": ["string", "null"]},
+        "inventory_end": {"type": ["string", "null"]}
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "status", "note"],
+        "properties": {
+          "id": {"type": "string"},
+          "question": {"type": "string"},
+          "status": {"enum": ["unresolved", "answered", "partial", "not-applicable"]},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "inventory_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["excludes", "max_files", "max_bytes"],
+      "properties": {
+        "excludes": {"type": "array", "items": {"type": "string"}},
+        "max_files": {"type": "integer", "minimum": 1},
+        "max_bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "previous_report": {"type": ["string", "null"]}
+  }
+}

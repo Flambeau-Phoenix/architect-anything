@@ -1,0 +1,6 @@
+interface:
+  display_name: "Architect Anything"
+  short_description: "Catch up on projects or explain how app features work"
+  default_prompt: "Use $architect-anything to help me understand this project or selected app feature and produce readable architecture documents with diagrams and evidence."
+policy:
+  allow_implicit_invocation: true

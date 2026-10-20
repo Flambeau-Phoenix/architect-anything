@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "title": "Example architecture investigation",
+  "subtitle": "An intentionally incomplete authoring example. Replace with inspected findings.",
+  "target": {"name": "Example target", "kind": "product", "locator": "https://example.invalid", "revision": null},
+  "run": {
+    "id": "example-run",
+    "captured_at": "2026-10-20T00:00:00Z",
+    "status": "partial",
+    "coverage": "unknown",
+    "tools": ["No analysis performed; authoring example only"],
+    "limitations": ["The target has not been inspected. Select and investigate the real target before writing factual claims."],
+    "exclusions": []
+  },
+  "evidence": [],
+  "claims": [
+    {"id": "uninspected", "text": "The target architecture is not established because no target evidence has been collected.", "authority": "unknown", "freshness": "unverified", "evidence": []}
+  ],
+  "sections": [
+    {"id": "briefing", "title": "Investigation status", "body": ["This example demonstrates the model's structure without inventing project facts."], "claims": ["uninspected"], "detail": false, "freshness": "unverified"}
+  ],
+  "diagrams": []
+}

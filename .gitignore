@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local skill settings and installation receipts
+local.json
+.install-manifest.json
+*.local.json
+.env
+.env.*
+!.env.example
+
+# Generated demos, reports, test scratch and release archives
+.demo/
+.cli-demo/
+.test-temp/
+dist/
+build/
+*.egg-info/
+docs/architecture/
+*.zip
+*.whl
+*.log
+
+# Tool/runtime dependencies and local evidence
+.runtime/
+node_modules/
+rea-main/
+ghidra_*/
+evidence/
+*.asar
+*.exe
+*.dll
+*.node
+*.har
+*.saz
+*.pcap
+*.pcapng
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

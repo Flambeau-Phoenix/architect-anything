@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:architect-anything:report:1",
+  "title": "Architect Anything report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "title", "subtitle", "target", "run", "evidence", "claims", "sections", "diagrams"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "title": {"$ref": "#/$defs/text"},
+    "subtitle": {"type": "string"},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "locator", "revision"],
+      "properties": {
+        "name": {"$ref": "#/$defs/text"},
+        "kind": {"enum": ["source", "product", "hybrid", "capture"]},
+        "locator": {"$ref": "#/$defs/text"},
+        "revision": {"type": ["string", "null"]}
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "captured_at", "status", "coverage", "tools", "limitations", "exclusions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["complete", "partial", "interrupted"]},
+        "coverage": {"enum": ["complete", "partial", "unknown"]},
+        "tools": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "exclusions": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "inventory_start": {"type": "string"},
+        "inventory_end": {"type": "string"},
+        "changes": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "locator", "note"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "kind": {"enum": ["source", "artifact", "rea", "runtime", "document", "external"]},
+          "locator": {"$ref": "#/$defs/text"},
+          "note": {"type": "string"},
+          "path": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "line_start": {"type": "integer", "minimum": 1},
+          "line_end": {"type": "integer", "minimum": 1},
+          "evidence_id": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "authority", "freshness", "evidence"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "text": {"$ref": "#/$defs/text"},
+          "authority": {"enum": ["observation", "derived", "inference", "contradiction", "unknown"]},
+          "freshness": {"$ref": "#/$defs/freshness"},
+          "evidence": {"$ref": "#/$defs/ids"}
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "body", "claims", "detail", "freshness"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "title": {"$ref": "#/$defs/text"},
+          "body": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+          "claims": {"$ref": "#/$defs/ids"},
+          "detail": {"type": "boolean"},
+          "freshness": {"$ref": "#/$defs/freshness"},
+          "table": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["columns", "rows"],
+            "properties": {
+              "columns": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/text"}},
+              "rows": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}}
+            }
+          }
+        }
+      }
+    },
+    "diagrams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "kind", "nodes", "edges", "freshness"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "title": {"$ref": "#/$defs/text"},
+          "kind": {"enum": ["context", "component", "sequence", "data", "state"]},
+          "freshness": {"$ref": "#/$defs/freshness"},
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "label", "claims"],
+              "properties": {
+                "id": {"$ref": "#/$defs/id"},
+                "label": {"type": "string", "minLength": 1, "maxLength": 100},
+                "claims": {"$ref": "#/$defs/ids"}
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "to", "label", "claims"],
+              "properties": {
+                "from": {"$ref": "#/$defs/id"},
+                "to": {"$ref": "#/$defs/id"},
+                "label": {"type": "string", "maxLength": 160},
+                "claims": {"$ref": "#/$defs/ids"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,79}$"},
+    "ids": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+    "freshness": {"enum": ["verified", "stale", "unverified"]}
+  }
+}
