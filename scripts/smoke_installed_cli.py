@@ -72,9 +72,21 @@ def main():
         unavailable = root/"rea.json"
         unavailable.write_text(json.dumps({"command":[str(root/"not-installed")]}),encoding="utf-8")
         assert run("rea","status","--config",unavailable,expected=4)["error"]["code"] == "rea_unavailable_or_failed"
+        assert run("start",source,"--depth","deep")["result"]["depth"] == "deep"
+        mcp = shutil.which("architect-anything-mcp", path=str(Path(command).parent)) or shutil.which("architect-anything-mcp")
+        if not mcp:
+            raise ValueError("The architect-anything-mcp command was not installed")
+        frames = "".join(json.dumps(m)+"\n" for m in (
+            {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}},
+            {"jsonrpc":"2.0","id":2,"method":"tools/list"}))
+        served = subprocess.run([mcp],input=frames,cwd=root,env=env,capture_output=True,text=True,timeout=60,check=True)
+        replies = [json.loads(line) for line in served.stdout.splitlines()]
+        assert replies[0]["result"]["serverInfo"]["name"] == "architect-anything"
+        assert any(t["name"] == "aa_start" for t in replies[1]["result"]["tools"])
     print(json.dumps({"installed_cli":True,"version":version,
                       "checks":["bundled schema","catch-up publication","scaffold refusal","resume",
-                                "focused question","whole-project preservation","REA error protocol"]},indent=2))
+                                "focused question","whole-project preservation","REA error protocol",
+                                "deep depth","MCP handshake and tool list"]},indent=2))
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ dependencies = []
 
 [project.scripts]
 architect-anything = "architect_anything:main"
+architect-anything-mcp = "architect_anything:mcp_main"
 
 [tool.setuptools]
 packages = ["architect_anything"]

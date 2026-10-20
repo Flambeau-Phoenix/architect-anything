@@ -5,7 +5,8 @@ All investigation examples used synthetic fixtures.
 
 ## Core checks
 
-Thirty-five behavioral tests passed using Python 3.14. Public Python sources are
+Forty-five behavioral tests passed using Python 3.14 (version 1.1.0; the first 35
+were validated on October 20, 2026 for 1.0.0). Public Python sources are
 also checked for Python 3.10 syntax compatibility.
 
 The tests cover source fingerprints and line bounds, broken references, stale
@@ -18,6 +19,11 @@ to publish a scaffold, partial findings, unresolved checklist entries, target
 changes during collection, ignored report outputs in Git repositories,
 prior-report selection, resume after publication, workspace containment,
 record-only remote identity, JSON errors and unavailable REA handling.
+The 1.1.0 tests cover depth checklists and the deep-note guard, legacy manifests
+without depth, installer host destinations, and the MCP server over a real stdio
+subprocess: handshake, tool listing, a start/status workflow, parse errors, tool
+errors that keep the server running, and CLI-equivalent refusal of scaffolds.
+The MCP server was not exercised against a live agent client in this release.
 
 The public repository adds release-structure checks and a reproducible source
 demo, focused explanation demo and installable CLI. GitHub Actions is configured

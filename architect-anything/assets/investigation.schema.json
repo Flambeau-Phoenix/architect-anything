@@ -8,6 +8,7 @@
     "schema_version": {"const": 1},
     "id": {"type": "string", "pattern": "^run-[A-Za-z0-9_-]+$"},
     "mode": {"enum": ["catch-up", "focus"]},
+    "depth": {"enum": ["overview", "standard", "deep"]},
     "question": {"type": ["string", "null"]},
     "target": {"type": "object"},
     "created_at": {"type": "string", "format": "date-time"},

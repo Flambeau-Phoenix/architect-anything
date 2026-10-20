@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from aa_inventory import compare_inventory, inventory
-from aa_model import PACKAGE, json_text, read_json, schema_errors, validate
+from aa_model import PACKAGE, VERSION, json_text, read_json, schema_errors, validate
 from aa_render import publish
 
 CATCH_UP = [
@@ -30,6 +30,23 @@ FOCUS = [
     ("design", "Which boundaries and tradeoffs explain the design, and is rationale recorded or inferred?"),
     ("limits", "What is established, what remains unknown, and what would resolve it?")
 ]
+DEEP_CATCH_UP = [
+    ("interfaces", "What are the public interfaces (APIs, CLIs, events, file formats) and their contracts?"),
+    ("algorithms", "Which non-trivial algorithms and state machines exist, and what are their invariants?"),
+    ("failure", "How do errors, retries, timeouts, partial failure and recovery behave?"),
+    ("modules", "For each major module: what are its responsibility, public surface, dependencies and owned state?"),
+    ("build", "How are build, packaging, configuration precedence and release produced?")
+]
+DEEP_FOCUS = [
+    ("interfaces", "Which exact functions, messages or schemas carry the behavior, with their signatures?"),
+    ("failure", "What happens on each evidenced failure path, including concurrency and ordering?"),
+    ("alternatives", "Which adjacent code paths or configuration change the behavior?")
+]
+OVERVIEW_CATCH_UP = ("briefing", "components", "behavior", "changes", "assessment")
+OVERVIEW_FOCUS = ("answer", "trace", "limits")
+DEPTHS = ("overview", "standard", "deep")
+DEFAULT_DEPTH = "standard"
+DEEP_NOTE_MINIMUM = 40
 TITLES = {
     "briefing": "Your project, as it stands", "components": "How the pieces fit",
     "behavior": "How the important features work", "data": "Data and ownership",
@@ -37,8 +54,24 @@ TITLES = {
     "assessment": "What deserves attention", "answer": "The direct answer",
     "trigger": "Where the behavior starts", "trace": "The path from input to result",
     "mechanism": "How the mechanism works", "design": "Why the design works this way",
-    "limits": "Evidence and remaining questions"
+    "limits": "Evidence and remaining questions", "interfaces": "Interfaces and contracts",
+    "algorithms": "Algorithms and state", "failure": "Failure, retry and recovery",
+    "modules": "Module reference", "build": "Build, configuration and release",
+    "alternatives": "Related paths and configuration"
 }
+
+
+def questions_for(mode, depth):
+    """Return the (id, question) checklist for a mode and depth."""
+    if depth not in DEPTHS:
+        raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
+    base = FOCUS if mode == "focus" else CATCH_UP
+    if depth == "overview":
+        keep = OVERVIEW_FOCUS if mode == "focus" else OVERVIEW_CATCH_UP
+        return [item for item in base if item[0] in keep]
+    if depth == "deep":
+        return base + (DEEP_FOCUS if mode == "focus" else DEEP_CATCH_UP)
+    return list(base)
 
 
 SCAFFOLD_LIMITATION = "Investigation scaffold only. The agent must inspect the target, replace working sections with evidenced findings, and complete the coverage checklist before publishing."
@@ -67,7 +100,10 @@ def prior_report(output, locator):
     return str(prior) if prior.is_file() and read_json(prior)["target"]["locator"] == locator else None
 
 
-def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=100000, max_bytes=268435456):
+def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=100000, max_bytes=268435456,
+          depth=DEFAULT_DEPTH):
+    if depth not in DEPTHS:
+        raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
     if focus is not None and not focus.strip():
         raise ValueError("A focus question cannot be blank")
     if max_files < 1 or max_bytes < 0:
@@ -108,13 +144,13 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
         write_json(work/"inventory-start.json", first)
     identity = {"name": name, "kind": selected_kind, "locator": locator,
                 "revision": first["git"]["revision"] if first and first["git"] else None}
-    questions = FOCUS if mode == "focus" else CATCH_UP
+    questions = questions_for(mode, depth)
     report = {
         "schema_version": 1, "title": f"{name}: {focus.strip() if focus else 'project catch-up'}",
         "subtitle": "Working investigation. Findings have not yet been established.",
         "target": identity,
         "run": {"id": run_id, "captured_at": now.isoformat(), "status": "partial", "coverage": "unknown",
-                "tools": ["Architect Anything 1.0.0"], "limitations": [SCAFFOLD_LIMITATION],
+                "tools": [f"Architect Anything {VERSION}"], "limitations": [SCAFFOLD_LIMITATION],
                 "exclusions": patterns},
         "evidence": [],
         "claims": [{"id": key+"-unknown", "text": question+" Not established yet.",
@@ -127,7 +163,8 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
     }
     write_json(work/"report.json", report)
     manifest = {
-        "schema_version": 1, "id": run_id, "mode": mode, "question": focus.strip() if focus else None,
+        "schema_version": 1, "id": run_id, "mode": mode, "depth": depth,
+        "question": focus.strip() if focus else None,
         "target": identity, "created_at": now.isoformat(), "status": "investigating",
         "paths": {"report": str(work/"report.json"), "evidence": str(work/"evidence"),
                   "output": str(output), "inventory_start": str(work/"inventory-start.json") if first else None,
@@ -138,7 +175,7 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
     }
     write_json(work/"investigation.json", manifest)
     return {"workspace": str(work), "manifest": str(work/"investigation.json"), "report": str(work/"report.json"),
-            "mode": mode, "question": manifest["question"], "previous_report": previous,
+            "mode": mode, "depth": depth, "question": manifest["question"], "previous_report": previous,
             "inventory_summary": {"files": len(first["files"]), "coverage": first["coverage"]} if first else None,
             "next": "Investigate the checklist using the skill; author claims/sections and evidence, then run finish. This command has not analyzed architectural behavior or published a report."}
 
@@ -152,6 +189,7 @@ def load(workspace):
         raise ValueError("Invalid investigation manifest: "+"; ".join(errors))
     if data.get("schema_version") != 1 or data.get("mode") not in ("focus", "catch-up"):
         raise ValueError("Unsupported investigation manifest")
+    data.setdefault("depth", DEFAULT_DEPTH)  # 1.0.0 manifests predate depth control
     work = path.parent
     if data["mode"] == "focus" and (not isinstance(data["question"], str) or not data["question"].strip()):
         raise ValueError("A focused investigation requires its question")
@@ -170,7 +208,7 @@ def load(workspace):
 def status(workspace):
     _, data = load(workspace)
     report = read_json(data["paths"]["report"])
-    return {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"],
+    return {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"], "depth": data["depth"],
             "question": data["question"], "status": data["status"], "checklist": data["checklist"],
             "report_validation": validate(report), "previous_report": data["previous_report"],
             "notice": "This reads saved investigation state, not live target freshness. A valid model does not establish completeness; validate local evidence or start a new run to refresh."}
@@ -192,6 +230,13 @@ def finish(workspace, partial=False):
         raise ValueError("A complete report cannot contain unresolved investigation questions")
     if any(row["status"] != "unresolved" and not row["note"].strip() for row in data["checklist"]):
         raise ValueError("Answered, partial and not-applicable checklist entries require an explanatory note")
+    if data["depth"] == "deep":
+        deep_ids = {key for key, _ in DEEP_FOCUS + DEEP_CATCH_UP}
+        thin = [row["id"] for row in data["checklist"] if row["id"] in deep_ids
+                and row["status"] in ("answered", "partial") and len(row["note"].strip()) < DEEP_NOTE_MINIMUM]
+        if thin:
+            raise ValueError("Deep investigation notes need at least "+str(DEEP_NOTE_MINIMUM)
+                             +" characters of concrete explanation: "+", ".join(thin))
     output = Path(data["paths"]["output"])
     snapshot = output/"snapshots"/data["id"]
     if (snapshot/"report.json").is_file():

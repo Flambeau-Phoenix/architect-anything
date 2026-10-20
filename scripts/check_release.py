@@ -9,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT/"architect-anything"
 sys.path.insert(0, str(SKILL/"scripts"))
-from aa_model import validate, read_json
+from aa_model import validate, read_json, VERSION
 
 IGNORED = {".git", "__pycache__", ".demo", ".cli-demo", ".test-temp", "dist", ".venv", "build"}
 FORBIDDEN = {"local.json", ".install-manifest.json", ".env"}
@@ -26,10 +26,12 @@ def check():
     required = ["README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md",
                 "THIRD_PARTY_NOTICES.md", ".gitignore", ".gitattributes",
                 ".github/workflows/validate.yml", "docs/validation.md",
-                "docs/release-1.0.0.md", "architect-anything/SKILL.md",
+                f"docs/release-{VERSION}.md", "architect-anything/SKILL.md",
                 "architect-anything/LICENSE", "architect-anything/agents/openai.yaml",
                 "architect-anything/assets/REA-LICENSE.txt", "pyproject.toml",
-                "architect-anything/scripts/aa_cli.py", "architect-anything/references/catch-up-and-focus.md"]
+                "architect-anything/scripts/aa_cli.py", "architect-anything/scripts/aa_mcp.py",
+                "architect-anything/references/mcp-server.md",
+                "architect-anything/references/catch-up-and-focus.md"]
     for name in required:
         if not (ROOT/name).is_file():
             errors.append(f"Missing release file: {name}")
@@ -39,6 +41,14 @@ def check():
     version = re.search(r'^\s+version: "(\d+\.\d+\.\d+)"$', entry, flags=re.M)
     if not version:
         errors.append("Skill version is missing")
+    elif version.group(1) != VERSION:
+        errors.append(f"SKILL.md version {version.group(1)} differs from aa_model.VERSION {VERSION}")
+    package_version = re.search(r'^__version__ = "([^"]+)"$', (SKILL/"__init__.py").read_text(encoding="utf-8"), flags=re.M)
+    if not package_version or package_version.group(1) != VERSION:
+        errors.append("architect-anything/__init__.py __version__ differs from aa_model.VERSION")
+    heading = re.search(r"^## (\d+\.\d+\.\d+)\b", (ROOT/"CHANGELOG.md").read_text(encoding="utf-8"), flags=re.M)
+    if not heading or heading.group(1) != VERSION:
+        errors.append("Newest CHANGELOG.md entry does not match aa_model.VERSION")
     if (ROOT/"LICENSE").read_bytes() != (SKILL/"LICENSE").read_bytes():
         errors.append("Portable and repository MIT licenses differ")
     count = 0

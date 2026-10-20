@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0
+
+- Depth control: `start --depth overview|standard|deep` selects an owner-level
+  answer, the full walkthrough, or a verbose technical reference. The depth is
+  recorded in the investigation manifest and drives its checklist; deep runs
+  require concrete notes. Manifests from 1.0.0 load as `standard`.
+- Architect Anything MCP server (`architect-anything-mcp`, standard library only,
+  stdio) exposing start, status, finish, validate, render, inventory, compare,
+  schema and the optional REA bridge as tools with the CLI's stable error codes.
+- `install-skill --host codex|antigravity` and `install.py --host` choose the
+  personal skills directory; `--destination` still overrides.
+- One version constant shared by the CLI, reports, package and skill; the release
+  check now fails when SKILL.md, the package or the changelog disagree.
+- Behavioral tests for depth, the MCP protocol/error paths and installer hosts.
+
 ## 1.0.0 — prepared for first release
 
 - Catch-up reports for projects that have outgrown their owners' documentation.

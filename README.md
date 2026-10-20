@@ -41,9 +41,10 @@ This installs the skill into your Codex skills directory. The installer is
 idempotent, preserves machine settings and refuses to replace independently
 edited installed files.
 
-Choose another skill destination explicitly when needed:
+Install for Antigravity, or choose any skill destination explicitly:
 
 ~~~sh
+python architect-anything/scripts/install.py --host antigravity
 python architect-anything/scripts/install.py --destination /path/to/skills/architect-anything
 ~~~
 
@@ -87,6 +88,17 @@ the agent selects an output directory in the working project. Focused explanatio
 default to their own question-specific directory under docs/architecture/focus/.
 Users do not need to author JSON or run the internal helpers themselves.
 
+### Choose how deep to go
+
+Say how much detail you want; the agent picks the depth.
+
+| Ask like | Depth | You get |
+| --- | --- | --- |
+| "Give me a quick rundown." | overview | Owner briefing, component map, key traces, limits |
+| "How does this work?" | standard | Full walkthrough with data, operations, changes, assessment |
+| "Document every detail for maintainers." | deep | Adds interface contracts, algorithms, failure paths, per-module reference, build and release |
+
+
 ## Agent-facing CLI
 
 The skill includes a CLI for its agent to organize the investigation, resume work
@@ -96,6 +108,7 @@ and validate/publish the authored documents. Install the named command optionall
 python -m pip install .
 architect-anything start /path/to/project
 architect-anything start /path/to/app --focus "How are plugins loaded?"
+architect-anything start /path/to/project --depth deep
 architect-anything status /path/to/investigation
 architect-anything finish /path/to/investigation
 ~~~
@@ -110,6 +123,21 @@ Without package installation, the portable skill can invoke
 Python architect-anything/scripts/aa_cli.py. Commands return machine-readable
 JSON, stable error/exit codes, schemas and noninteractive results.
 See [the agent CLI contract](architect-anything/references/agent-cli.md).
+
+## MCP server
+
+`architect-anything-mcp` is a dependency-free stdio MCP server that exposes the
+same operations as tools (`aa_start`, `aa_status`, `aa_finish`, `aa_validate`,
+`aa_render`, `aa_inventory`, `aa_compare`, `aa_schema`, and the optional REA
+bridge). It organizes and publishes the report; REA's own MCP server or CLI
+gathers artifact evidence. Registration is opt-in and never automatic:
+
+~~~json
+{ "mcpServers": { "architect-anything": { "command": "architect-anything-mcp" } } }
+~~~
+
+Without installation, run `python architect-anything/scripts/aa_mcp.py`. See
+[the MCP guide](architect-anything/references/mcp-server.md).
 
 ## REA integration
 
@@ -157,8 +185,9 @@ python scripts/check_release.py
 python -m unittest discover -s architect-anything/tests -v
 ~~~
 
-The 35 behavioral tests cover investigation modes, publication/resume, machine
-contracts, evidence/freshness, diagrams, history, comparisons, escaping and installation.
+The 45 behavioral tests cover investigation modes and depth levels, publication/resume,
+machine contracts, the MCP protocol and error paths, evidence/freshness, diagrams,
+history, comparisons, escaping and installation.
 GitHub Actions is configured to run the core checks on Windows and Linux with
 Python 3.10, 3.12 and 3.14.
 
@@ -169,8 +198,9 @@ See [validation scope and limits](docs/validation.md).
 
 ## Release and attribution
 
-Version 1.0.0 is prepared for the first release. See the [changelog](CHANGELOG.md),
-[release notes](docs/release-1.0.0.md), and [contributing guidance](CONTRIBUTING.md).
+Version 1.1.0 adds depth control, an MCP server and Antigravity installation to
+the unpublished 1.0.0 baseline. See the [changelog](CHANGELOG.md),
+[release notes](docs/release-1.1.0.md), and [contributing guidance](CONTRIBUTING.md).
 
 Licensed under [MIT](LICENSE). REA attribution and its retained license are
 documented in [third-party notices](THIRD_PARTY_NOTICES.md).

@@ -23,10 +23,19 @@ Python libraries.
 ~~~text
 architect-anything start TARGET
 architect-anything start TARGET --focus "How does offline sync work?"
+architect-anything start TARGET --depth deep
 architect-anything status WORKSPACE
 architect-anything validate WORKING_REPORT.json --check-files
 architect-anything finish WORKSPACE
 ~~~
+
+`--depth` is `overview`, `standard` (default) or `deep`. It is stored in the
+manifest, shown by status and selects the checklist: overview keeps the
+owner-level questions, deep adds interfaces, algorithms, failure paths, module
+reference and build/release (catch-up) or signatures, failure paths and related
+configuration (focus). A deep finish requires each answered or partial added row
+to carry a concrete note of at least 40 characters. A manifest without depth is
+treated as standard.
 
 Start returns an investigation manifest, report scaffold and evidence directory.
 Directory targets default to source unless they are recognized application
@@ -59,7 +68,7 @@ unchanged. New findings require a new investigation/snapshot.
 | render REPORT --output DIR | Publish an existing authored report model |
 | rea status --config FILE | Probe an existing REA CLI |
 | rea run --config FILE --out FILE -- OPERATION ARGS | Run a selected REA operation and retain output/receipt |
-| install-skill | Install the portable skill for the local agent |
+| install-skill [--host codex\|antigravity] | Install the portable skill for the local agent |
 
 The REA bridge preserves operation scope and actual host requirements. A CLI
 probe does not prove a provider is ready or an MCP server is connected.

@@ -2,7 +2,7 @@
 name: architect-anything
 description: Help owners catch up when a project has outgrown its documentation, or explain exactly how a selected app feature, subsystem or algorithm works. Investigate source projects and finished products with repository evidence and REA, then deliver readable HTML and Markdown architecture documents with diagrams, citations and change history.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Architect Anything
@@ -34,6 +34,25 @@ Python scripts/aa_cli.py. Start prepares an investigation workspace; it is not
 an architectural analysis. The agent still inspects the target and authors the
 findings. Never deliver the uninvestigated scaffold as the requested report.
 Read [Agent CLI](references/agent-cli.md) for invocation, schemas and exit contracts.
+When the agent has the Architect Anything MCP server, the same operations are
+tools (`aa_start`, `aa_status`, `aa_finish`, ...); see
+[MCP server](references/mcp-server.md). Registration is opt-in.
+
+## Choose the depth
+
+Pick a depth from how the user asks, say which you chose, and pass it to start
+(`--depth` or the `depth` tool argument). Users never need to name it.
+
+| User asks like | Depth | Deliver |
+| --- | --- | --- |
+| "quick rundown", "what is this", "explain simply" | `overview` | Owner briefing, component map, one or two feature traces, honest limits |
+| "how does this work", "catch me up" (default) | `standard` | Briefing plus data ownership, operations, changes and assessment |
+| "every detail", "for the maintainers", "verbose", "document it fully" | `deep` | Standard plus interfaces/contracts, algorithms and invariants, failure and recovery paths, per-module reference, build/config/release |
+
+Deeper is not longer prose: add precise signatures, tables of contracts and
+concrete walkthroughs, each cited. Deep runs need a concrete note per added
+checklist row. Keep each diagram under 12 nodes and use more diagrams, not a
+bigger one. Depth never relaxes evidence or freshness labeling.
 
 ## Start with the actual target
 
@@ -152,7 +171,8 @@ python scripts/architect.py render REPORT.json --output OUTPUT
 python scripts/architect.py compare OLD_REPORT.json NEW_REPORT.json --out DELTA.json
 python scripts/rea_bridge.py status --config LOCAL_CONFIG.json
 python scripts/rea_bridge.py run --config LOCAL_CONFIG.json --out EVIDENCE.json -- inspect-go-binary TARGET --json
-python scripts/install.py --destination PERSONAL_SKILL_DIRECTORY
+python scripts/install.py --host codex|antigravity   # or --destination PERSONAL_SKILL_DIRECTORY
+python scripts/aa_mcp.py                              # MCP server over stdio
 ```
 
 Paths above are relative to this skill directory. Resolve them before invoking.

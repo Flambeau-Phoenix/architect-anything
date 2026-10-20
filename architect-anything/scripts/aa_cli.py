@@ -10,8 +10,8 @@ import subprocess
 import sys
 
 from aa_inventory import compare_inventory, inventory
-from aa_investigation import finish, start, status
-from aa_model import PACKAGE, SCHEMA, compare_reports, json_text, read_json, validate
+from aa_investigation import DEFAULT_DEPTH, DEPTHS, finish, start, status
+from aa_model import PACKAGE, SCHEMA, VERSION, compare_reports, json_text, read_json, validate
 from aa_render import publish
 
 
@@ -28,13 +28,15 @@ class Parser(argparse.ArgumentParser):
 
 def parser():
     p = Parser(prog="architect-anything", description=__doc__)
-    p.add_argument("--version", action="version", version="1.0.0")
+    p.add_argument("--version", action="version", version=VERSION)
     commands = p.add_subparsers(dest="command", required=True)
     begin = commands.add_parser("start", help="Set up a catch-up or focused investigation for the agent")
     begin.add_argument("target", help="Local project/artifact path or product URL")
     begin.add_argument("--focus", help="The user's feature or design question")
     begin.add_argument("--output", help="Report directory; defaults to docs/architecture for source")
     begin.add_argument("--kind", choices=["auto", "source", "product", "hybrid", "capture"], default="auto")
+    begin.add_argument("--depth", choices=list(DEPTHS), default=DEFAULT_DEPTH,
+                       help="overview: owner-level answer; standard: full walkthrough; deep: verbose technical reference")
     begin.add_argument("--exclude", action="append", default=[])
     begin.add_argument("--max-files", type=int, default=100000)
     begin.add_argument("--max-file-bytes", type=int, default=268435456)
@@ -69,13 +71,14 @@ def parser():
             action.add_argument("--out", required=True)
             action.add_argument("arguments", nargs=argparse.REMAINDER)
     install = commands.add_parser("install-skill", help="Install this skill for the local agent")
-    install.add_argument("--destination", default=str(Path(os.environ.get("CODEX_HOME", str(Path.home()/".codex")))/"skills/architect-anything"))
+    install.add_argument("--host", choices=["codex", "antigravity"], default="codex")
+    install.add_argument("--destination", help="Exact architect-anything skill directory; overrides --host")
     install.add_argument("--rea-config")
     return p
 
 
 def command_contract(p):
-    result = {"schema_version": 1, "version": "1.0.0", "invocation": "architect-anything",
+    result = {"schema_version": 1, "version": VERSION, "invocation": "architect-anything",
               "success": {"ok": True, "command": "command name", "result": "operation result"},
               "failure": {"ok": False, "command": "command name", "error": {"code": "stable code", "message": "explanation"}},
               "streams": {"stdout": "Success JSON; help/version are plain text", "stderr": "Failure JSON"},
@@ -97,7 +100,8 @@ def write_result(path, result):
 
 def run(args, p):
     if args.command == "start":
-        return start(args.target, args.output, args.focus, args.kind, args.exclude, args.max_files, args.max_file_bytes)
+        return start(args.target, args.output, args.focus, args.kind, args.exclude, args.max_files,
+                     args.max_file_bytes, args.depth)
     if args.command == "status":
         return status(args.workspace)
     if args.command == "finish":
@@ -142,8 +146,8 @@ def run(args, p):
             raise CommandError("rea_unavailable_or_failed", "REA bridge did not complete successfully", 4, details)
         return json.loads(process.stdout)
     if args.command == "install-skill":
-        from install import install
-        return install(args.destination, args.rea_config)
+        from install import default_destination, install
+        return install(args.destination or default_destination(args.host), args.rea_config)
     raise ValueError("Unknown command")
 
 
