@@ -3,14 +3,21 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
-import json
 import re
 import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
 from aa_inventory import compare_inventory, inventory
-from aa_model import PACKAGE, VERSION, digest, json_text, read_json, schema_errors, validate
+from aa_model import (
+    PACKAGE,
+    VERSION,
+    digest,
+    json_text,
+    read_json,
+    schema_errors,
+    validate,
+)
 from aa_render import publish
 
 CATCH_UP = [

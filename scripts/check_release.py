@@ -2,14 +2,14 @@
 """Check the portable skill, repository links and public-release boundaries."""
 import ast
 import json
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT/"architect-anything"
 sys.path.insert(0, str(SKILL/"scripts"))
-from aa_model import validate, read_json, VERSION
+from aa_model import VERSION, read_json, validate
 
 IGNORED = {".git", "__pycache__", ".demo", ".cli-demo", ".test-temp", "dist", ".venv", "build"}
 FORBIDDEN = {"local.json", ".install-manifest.json", ".env"}
@@ -43,15 +43,15 @@ def check():
     entry = (SKILL/"SKILL.md").read_text(encoding="utf-8")
     if not entry.startswith("---\n") or "name: architect-anything\n" not in entry:
         errors.append("Skill identity/frontmatter is invalid")
-    version = re.search(r'^\s+version: "(\d+\.\d+\.\d+)"$', entry, flags=re.M)
+    version = re.search(r'^\s+version: "(\d+\.\d+\.\d+)"$', entry, flags=re.MULTILINE)
     if not version:
         errors.append("Skill version is missing")
     elif version.group(1) != VERSION:
         errors.append(f"SKILL.md version {version.group(1)} differs from aa_model.VERSION {VERSION}")
-    package_version = re.search(r'^__version__ = "([^"]+)"$', (SKILL/"__init__.py").read_text(encoding="utf-8"), flags=re.M)
+    package_version = re.search(r'^__version__ = "([^"]+)"$', (SKILL/"__init__.py").read_text(encoding="utf-8"), flags=re.MULTILINE)
     if not package_version or package_version.group(1) != VERSION:
         errors.append("architect-anything/__init__.py __version__ differs from aa_model.VERSION")
-    heading = re.search(r"^## (\d+\.\d+\.\d+)\b", (ROOT/"CHANGELOG.md").read_text(encoding="utf-8"), flags=re.M)
+    heading = re.search(r"^## (\d+\.\d+\.\d+)\b", (ROOT/"CHANGELOG.md").read_text(encoding="utf-8"), flags=re.MULTILINE)
     if not heading or heading.group(1) != VERSION:
         errors.append("Newest CHANGELOG.md entry does not match aa_model.VERSION")
     if (ROOT/"LICENSE").read_bytes() != (SKILL/"LICENSE").read_bytes():

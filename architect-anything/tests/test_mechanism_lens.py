@@ -1,14 +1,24 @@
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
-from aa_investigation import (DEEP_FOCUS, FOCUS, LENSES, MECHANISM, finish, load, questions_for, set_checklist,
-                              start, status)
+from aa_investigation import (
+    DEEP_FOCUS,
+    FOCUS,
+    LENSES,
+    MECHANISM,
+    finish,
+    load,
+    questions_for,
+    set_checklist,
+    start,
+    status,
+)
 from fixture_factory import create_source, sample_report
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -61,7 +71,7 @@ class Workspace(unittest.TestCase):
     def test_start_records_the_lens_and_lays_out_sections(self):
         opened = start(self.source, focus="How are writes serialized?", lens="mechanism")
         self.assertEqual(opened["lens"], "mechanism")
-        path, data = load(opened["workspace"])
+        _path, data = load(opened["workspace"])
         self.assertEqual(data["lens"], "mechanism")
         self.assertEqual([r["id"] for r in data["checklist"]], IDS)
         report = json.loads(Path(data["paths"]["report"]).read_text(encoding="utf-8"))
@@ -85,7 +95,7 @@ class Workspace(unittest.TestCase):
 
     def test_a_lens_run_publishes_like_any_other(self):
         opened = start(self.source, focus="How are writes serialized?", lens="mechanism", depth="overview")
-        path, data = load(opened["workspace"])
+        _path, data = load(opened["workspace"])
         report = sample_report(self.source, data["id"])
         report["target"] = data["target"]
         Path(data["paths"]["report"]).write_text(json.dumps(report), encoding="utf-8")
@@ -109,7 +119,7 @@ class Interfaces(unittest.TestCase):
 
     def cli(self, *args):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-        process = subprocess.run([sys.executable, str(CLI), *map(str, args)], capture_output=True, text=True, env=env)
+        process = subprocess.run([sys.executable, str(CLI), *map(str, args)], capture_output=True, text=True, env=env, check=False)
         return process, json.loads(process.stdout or process.stderr)
 
     def test_cli_accepts_the_lens(self):
@@ -134,7 +144,7 @@ class Interfaces(unittest.TestCase):
                 "target": str(self.source), "lens": "mechanism"}}},
         ])
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-        process = subprocess.run([sys.executable, str(MCP)], input=frames, capture_output=True, text=True, env=env, timeout=120)
+        process = subprocess.run([sys.executable, str(MCP)], input=frames, capture_output=True, text=True, env=env, timeout=120, check=False)
         by_id = {r["id"]: r["result"] for r in map(json.loads, process.stdout.splitlines())}
         start_tool = next(t for t in by_id[1]["tools"] if t["name"] == "aa_start")
         self.assertEqual(start_tool["inputSchema"]["properties"]["lens"]["enum"], ["mechanism"])

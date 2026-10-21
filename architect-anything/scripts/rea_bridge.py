@@ -4,10 +4,10 @@ import argparse
 import datetime as dt
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from aa_model import PACKAGE, digest, json_text, read_json
 
@@ -46,7 +46,7 @@ def main():
     command, cwd, env = configuration(args.config)
     if args.action == "status":
         result = subprocess.run(command + ["--version"], cwd=cwd, env=env, capture_output=True,
-                                text=True, timeout=30)
+                                text=True, timeout=30, check=False)
         print(json_text({"available": result.returncode == 0, "command": command,
                          "version_output": result.stdout.strip(), "stderr": result.stderr.strip(),
                          "notice": "CLI availability only; provider readiness and MCP connection are not established."}), end="")
@@ -60,7 +60,7 @@ def main():
         raise ValueError("Evidence output/sidecar already exists; choose a new filename")
     with output.open("xb") as stdout, error_path.open("xb") as stderr:
         # No blanket timeout: provider cleanup/lifecycle must finish. Ctrl-C remains available.
-        result = subprocess.run(command + forwarded, cwd=cwd, env=env, stdout=stdout, stderr=stderr)
+        result = subprocess.run(command + forwarded, cwd=cwd, env=env, stdout=stdout, stderr=stderr, check=False)
     receipt = {"command": command + forwarded, "exit_code": result.returncode,
                "completed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
                "output": str(output), "sha256": digest(output), "stderr": str(error_path),

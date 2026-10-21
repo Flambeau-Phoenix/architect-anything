@@ -1,14 +1,22 @@
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
-from aa_investigation import DEEP_CATCH_UP, DEEP_FOCUS, finish, load, start, status, write_json
-from aa_model import VERSION, read_json
+from aa_investigation import (
+    DEEP_CATCH_UP,
+    DEEP_FOCUS,
+    finish,
+    load,
+    start,
+    status,
+    write_json,
+)
+from aa_model import VERSION
 from fixture_factory import create_source, sample_report
 from install import default_destination
 
@@ -102,7 +110,7 @@ class McpServer(unittest.TestCase):
     def session(self, messages):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
         process = subprocess.run([sys.executable, str(MCP)], input="".join(json.dumps(m)+"\n" for m in messages),
-                                 capture_output=True, text=True, env=env, timeout=120)
+                                 capture_output=True, text=True, env=env, timeout=120, check=False)
         self.assertEqual(process.returncode, 0, process.stderr)
         lines = process.stdout.splitlines()
         return [json.loads(line) for line in lines]  # every stdout line must be a JSON-RPC frame
@@ -159,7 +167,7 @@ class McpServer(unittest.TestCase):
     def test_invalid_json_gets_parse_error_and_server_continues(self):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
         process = subprocess.run([sys.executable, str(MCP)], input='not json\n{"jsonrpc":"2.0","id":1,"method":"ping"}\n',
-                                 capture_output=True, text=True, env=env, timeout=60)
+                                 capture_output=True, text=True, env=env, timeout=60, check=False)
         frames = [json.loads(line) for line in process.stdout.splitlines()]
         self.assertEqual(frames[0]["error"]["code"], -32700)
         self.assertEqual(frames[1]["result"], {})
