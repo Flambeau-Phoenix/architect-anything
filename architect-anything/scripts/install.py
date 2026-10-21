@@ -26,6 +26,18 @@ def default_destination(host="codex"):
     raise ValueError("Host must be one of: "+", ".join(HOSTS))
 
 
+def host_root(host):
+    """The agent's own configuration directory; its presence means the agent is installed."""
+    if host == "antigravity":
+        return Path.home()/".gemini"
+    return Path(default_destination(host)).parents[1]
+
+
+def detect_hosts():
+    """Hosts whose configuration directory already exists on this machine."""
+    return [host for host in HOSTS if host_root(host).is_dir()]
+
+
 def install(destination, rea_config=None):
     dest = Path(destination).expanduser().resolve()
     if dest.name != "architect-anything":
@@ -90,11 +102,20 @@ def install(destination, rea_config=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", choices=HOSTS, default="codex")
+    parser.add_argument("--host", choices=HOSTS,
+                        help="Agent to install for; omitted, every agent found on this machine is used")
     parser.add_argument("--destination", help="Exact architect-anything skill directory; overrides --host")
     parser.add_argument("--rea-config")
     args = parser.parse_args()
-    print(json_text(install(args.destination or default_destination(args.host), args.rea_config)), end="")
+    if args.destination or args.host:
+        print(json_text(install(args.destination or default_destination(args.host), args.rea_config)), end="")
+        return
+    found = detect_hosts()
+    if not found:
+        raise ValueError("No supported agent found (looked for "
+                         + ", ".join(str(host_root(h)) for h in HOSTS) + "); pass --host or --destination")
+    results = {host: install(default_destination(host), args.rea_config) for host in found}
+    print(json_text({"detected": found, "installs": results}), end="")
 
 
 if __name__ == "__main__":

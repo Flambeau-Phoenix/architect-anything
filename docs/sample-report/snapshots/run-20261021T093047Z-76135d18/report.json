@@ -1,0 +1,768 @@
+{
+  "schema_version": 1,
+  "title": "Architect Anything: how the toolkit keeps an agent's findings checkable",
+  "subtitle": "A self-investigation of the repository at one commit: the workflow gates, the evidence hashes, the installer and the MCP server.",
+  "target": {
+    "name": "Architect Anything",
+    "kind": "source",
+    "locator": "C:\\tools\\aa-sample\\architect-anything",
+    "revision": "6189462d4aacaffe181bd8553802c11422b25a1a"
+  },
+  "run": {
+    "id": "run-20261021T093047Z-76135d18",
+    "captured_at": "2026-10-21T09:30:47.759970+00:00",
+    "status": "complete",
+    "coverage": "partial",
+    "tools": [
+      "Architect Anything 1.1.0"
+    ],
+    "limitations": [
+      "Static reading of the Python helpers at one commit. No part of the toolkit was run as part of this investigation, and the repository's own tests were not used as evidence.",
+      "The HTML renderer, the skill's written instructions and references, the CI workflows and the REA integration beyond its configuration and receipts were not examined.",
+      "Design intent is inferred from the code; no decision records were consulted."
+    ],
+    "exclusions": [],
+    "inventory_start": "C:\\tools\\aa-sample\\out\\investigations\\run-20261021T093047Z-76135d18\\inventory-start.json",
+    "inventory_end": "C:\\tools\\aa-sample\\out\\investigations\\run-20261021T093047Z-76135d18\\inventory-end.json"
+  },
+  "evidence": [
+    {
+      "id": "e-start",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_investigation.py:131-216",
+      "note": "start: option checks, inventory, scaffold report and checklist",
+      "path": "architect-anything/scripts/aa_investigation.py",
+      "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+      "line_start": 131,
+      "line_end": 216
+    },
+    {
+      "id": "e-finish",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_investigation.py:358-418",
+      "note": "finish: scaffold refusal, checklist gate, end inventory, publish",
+      "path": "architect-anything/scripts/aa_investigation.py",
+      "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+      "line_start": 358,
+      "line_end": 418
+    },
+    {
+      "id": "e-cite",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_investigation.py:305-357",
+      "note": "cite: hashed evidence record for a file and line range",
+      "path": "architect-anything/scripts/aa_investigation.py",
+      "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+      "line_start": 305,
+      "line_end": 357
+    },
+    {
+      "id": "e-digest",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_model.py:23-52",
+      "note": "digest, text_digest and digest_matches",
+      "path": "architect-anything/scripts/aa_model.py",
+      "sha256": "5e7d05e3c2b64b88f3e4edcf0199f90da1332a408c8ba529c9c0943baadd6f35",
+      "line_start": 23,
+      "line_end": 52
+    },
+    {
+      "id": "e-validate",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_model.py:186-204",
+      "note": "validate --check-files: fingerprint and line-range checks",
+      "path": "architect-anything/scripts/aa_model.py",
+      "sha256": "5e7d05e3c2b64b88f3e4edcf0199f90da1332a408c8ba529c9c0943baadd6f35",
+      "line_start": 186,
+      "line_end": 204
+    },
+    {
+      "id": "e-excludes",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_inventory.py:14-16",
+      "note": "default inventory exclusions",
+      "path": "architect-anything/scripts/aa_inventory.py",
+      "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+      "line_start": 14,
+      "line_end": 16
+    },
+    {
+      "id": "e-inventory",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_inventory.py:26-100",
+      "note": "inventory: selection, hashing, stability, omissions",
+      "path": "architect-anything/scripts/aa_inventory.py",
+      "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+      "line_start": 26,
+      "line_end": 100
+    },
+    {
+      "id": "e-compare",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_inventory.py:107-125",
+      "note": "compare_inventory: hash comparison and coverage change",
+      "path": "architect-anything/scripts/aa_inventory.py",
+      "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+      "line_start": 107,
+      "line_end": 125
+    },
+    {
+      "id": "e-publish",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_render.py:217-262",
+      "note": "publish: validate, lock, immutable snapshot, pointers",
+      "path": "architect-anything/scripts/aa_render.py",
+      "sha256": "894af10dc7f4ccb5d4aa13678c73bcc73cb0216c82f4d25cedb41b26eb77ed98",
+      "line_start": 217,
+      "line_end": 262
+    },
+    {
+      "id": "e-mcp-top",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_mcp.py:1-8",
+      "note": "MCP server contract",
+      "path": "architect-anything/scripts/aa_mcp.py",
+      "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+      "line_start": 1,
+      "line_end": 8
+    },
+    {
+      "id": "e-mcp-call",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_mcp.py:124-146",
+      "note": "call_tool: MCP calls run through the CLI parser and run()",
+      "path": "architect-anything/scripts/aa_mcp.py",
+      "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+      "line_start": 124,
+      "line_end": 146
+    },
+    {
+      "id": "e-mcp-handle",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_mcp.py:147-174",
+      "note": "handle: JSON-RPC methods and error codes",
+      "path": "architect-anything/scripts/aa_mcp.py",
+      "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+      "line_start": 147,
+      "line_end": 174
+    },
+    {
+      "id": "e-mcp-main",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_mcp.py:175-195",
+      "note": "main: stdio loop that survives bad input",
+      "path": "architect-anything/scripts/aa_mcp.py",
+      "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+      "line_start": 175,
+      "line_end": 195
+    },
+    {
+      "id": "e-cli",
+      "kind": "source",
+      "locator": "architect-anything/scripts/aa_cli.py:136-192",
+      "note": "run: command dispatch",
+      "path": "architect-anything/scripts/aa_cli.py",
+      "sha256": "4d88d3c0ef8283780421958645d01dd67ece4a8a4eabc2003da3a61e6ce94c5f",
+      "line_start": 136,
+      "line_end": 192
+    },
+    {
+      "id": "e-host",
+      "kind": "source",
+      "locator": "architect-anything/scripts/install.py:29-40",
+      "note": "host_root and detect_hosts",
+      "path": "architect-anything/scripts/install.py",
+      "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+      "line_start": 29,
+      "line_end": 40
+    },
+    {
+      "id": "e-install",
+      "kind": "source",
+      "locator": "architect-anything/scripts/install.py:41-60",
+      "note": "install: destination and integrity guards",
+      "path": "architect-anything/scripts/install.py",
+      "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+      "line_start": 41,
+      "line_end": 60
+    },
+    {
+      "id": "e-install-main",
+      "kind": "source",
+      "locator": "architect-anything/scripts/install.py:103-120",
+      "note": "installer entry point",
+      "path": "architect-anything/scripts/install.py",
+      "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+      "line_start": 103,
+      "line_end": 120
+    },
+    {
+      "id": "e-rea-config",
+      "kind": "source",
+      "locator": "architect-anything/scripts/rea_bridge.py:15-35",
+      "note": "REA CLI discovery",
+      "path": "architect-anything/scripts/rea_bridge.py",
+      "sha256": "50cf87c612a08c2508e346e9fb84b9a61f1b2ac98e0dbcc9138f947ebb71f5f3",
+      "line_start": 15,
+      "line_end": 35
+    },
+    {
+      "id": "e-rea-run",
+      "kind": "source",
+      "locator": "architect-anything/scripts/rea_bridge.py:56-78",
+      "note": "REA run output, sidecar and receipt",
+      "path": "architect-anything/scripts/rea_bridge.py",
+      "sha256": "50cf87c612a08c2508e346e9fb84b9a61f1b2ac98e0dbcc9138f947ebb71f5f3",
+      "line_start": 56,
+      "line_end": 78
+    },
+    {
+      "id": "e-skill-rea",
+      "kind": "source",
+      "locator": "architect-anything/SKILL.md:118-123",
+      "note": "REA is optional for source investigations",
+      "path": "architect-anything/SKILL.md",
+      "sha256": "f6f5f749fa4ee803885805b8821ab554970c7997ffcd78807643cd2e32d8faed",
+      "line_start": 118,
+      "line_end": 123
+    },
+    {
+      "id": "e-pyproject",
+      "kind": "source",
+      "locator": "pyproject.toml:39-42",
+      "note": "console script entry points",
+      "path": "pyproject.toml",
+      "sha256": "52c74aba3bba8b8ce9c01dfa4752308a52312a4dbcb86d643a843f3de03b06f0",
+      "line_start": 39,
+      "line_end": 42
+    }
+  ],
+  "claims": [
+    {
+      "id": "start-scaffold",
+      "text": "start validates its options, inventories the target and writes a working report whose claims are all unknown and whose limitations carry a scaffold marker. It records a checklist of unresolved questions and does not analyze the target.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-start"
+      ]
+    },
+    {
+      "id": "finish-gates",
+      "text": "finish refuses a report that is still the scaffold, refuses unresolved checklist items unless --partial is given, and requires an explanatory note on every resolved item.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-finish"
+      ]
+    },
+    {
+      "id": "finish-reinventory",
+      "text": "finish inventories the target again. If any file was added, removed or changed, or the selected coverage differs, it marks the run partial and, without --partial, refuses to publish.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-finish"
+      ]
+    },
+    {
+      "id": "publish-immutable",
+      "text": "publish validates the report first, takes an exclusive lock file, refuses to overwrite an index.html or README.md that was edited by hand, and writes each run into a new snapshot directory that must not already exist.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-publish"
+      ]
+    },
+    {
+      "id": "validate-evidence",
+      "text": "With file checking on, validation compares each cited file's current hash with the recorded SHA-256 and flags a missing file, a changed fingerprint or a line range outside the file. The problem is an error unless every claim that depends on the evidence is unverified, in which case it is only a warning.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-validate"
+      ]
+    },
+    {
+      "id": "hash-normalized",
+      "text": "Source citations and inventories hash text with CRLF folded to LF and hash binary files byte for byte. Validation accepts either the normalized or the older raw-byte hash.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-digest",
+        "e-cite",
+        "e-inventory"
+      ]
+    },
+    {
+      "id": "inventory-selection",
+      "text": "The inventory skips .git, dependency and cache directories and docs/architecture by default, hashes the selected files, and records files that changed while being hashed, omissions and errors instead of hiding them.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-excludes",
+        "e-inventory"
+      ]
+    },
+    {
+      "id": "compare-by-hash",
+      "text": "compare_inventory classifies each path by its SHA-256 and treats a different selection source, exclusion list, error list or non-exclusion omission as a change in coverage, which makes the comparison not comparable.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-compare"
+      ]
+    },
+    {
+      "id": "cli-surface",
+      "text": "The command line dispatches start, status, checklist, cite, finish, schema, inventory, diff, compare, validate, render, rea and install-skill commands from one run function.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-cli"
+      ]
+    },
+    {
+      "id": "mcp-wrapper",
+      "text": "The MCP server is a standard-library stdio JSON-RPC layer. Each tool call is turned into CLI arguments and run through the same parser and run function, and failures come back with the CLI's error codes. Its documentation states that it never executes inspected targets.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-mcp-top",
+        "e-mcp-call"
+      ]
+    },
+    {
+      "id": "mcp-transport",
+      "text": "The server answers initialize, ping, tools/list and tools/call, returns a method-not-found error for anything else, answers malformed JSON with a parse error and keeps reading.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-mcp-handle",
+        "e-mcp-main"
+      ]
+    },
+    {
+      "id": "installer-guards",
+      "text": "The installer requires the destination folder to be named architect-anything and separate from the source, refuses to replace files that differ from the manifest of the last install, stages the copy in a sibling temporary folder and keeps backups outside the skills directory.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-install"
+      ]
+    },
+    {
+      "id": "host-detection",
+      "text": "Run with neither --host nor --destination, the installer installs for every agent whose configuration folder exists (Claude, Codex, ~/.agents and Antigravity's ~/.gemini) and fails with a message naming what it looked for when none does. An explicit --host or --destination skips detection.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-host",
+        "e-install-main"
+      ]
+    },
+    {
+      "id": "rea-optional",
+      "text": "REA is optional for a complete source investigation. The bridge finds an REA command from a config file, an environment variable, a local setting or the PATH, and fails with an explicit message when none is available.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-skill-rea",
+        "e-rea-config"
+      ]
+    },
+    {
+      "id": "rea-receipts",
+      "text": "Running REA through the bridge writes its output and a stderr sidecar with exclusive creation, so an earlier result is not overwritten, and records a receipt with the exit code and the output's SHA-256.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-rea-run"
+      ]
+    },
+    {
+      "id": "entrypoints",
+      "text": "The package declares architect-anything and architect-anything-mcp console scripts.",
+      "authority": "observation",
+      "freshness": "verified",
+      "evidence": [
+        "e-pyproject"
+      ]
+    },
+    {
+      "id": "design-split",
+      "text": "The code keeps interpretation with the investigating agent and puts the checks in deterministic helpers: a scaffold cannot be published as a finding, a complete run is re-checked against the target, and a cited file that changed fails validation.",
+      "authority": "derived",
+      "freshness": "verified",
+      "evidence": [
+        "e-start",
+        "e-finish",
+        "e-validate"
+      ]
+    },
+    {
+      "id": "risk-old-hashes",
+      "text": "Reports and inventories written before the newline change hashed CRLF files byte for byte. Validation still accepts them, but comparing a new inventory with an older one lists a CRLF file as changed, once.",
+      "authority": "derived",
+      "freshness": "verified",
+      "evidence": [
+        "e-digest",
+        "e-compare"
+      ]
+    },
+    {
+      "id": "risk-whole-run",
+      "text": "finish reacts to a change in any selected file by marking the whole run partial and refusing to publish. It does not narrow the effect to the citations of the file that changed.",
+      "authority": "derived",
+      "freshness": "verified",
+      "evidence": [
+        "e-finish"
+      ]
+    },
+    {
+      "id": "render-gap",
+      "text": "How the HTML report is rendered (search, themes, diagrams), what the skill's written instructions steer an agent to do, and how the CI workflows run were not examined in this investigation.",
+      "authority": "unknown",
+      "freshness": "verified",
+      "evidence": []
+    }
+  ],
+  "sections": [
+    {
+      "id": "briefing",
+      "title": "What this repository is",
+      "detail": false,
+      "freshness": "verified",
+      "body": [
+        "Architect Anything is a set of standard-library Python helpers, a command line and an MCP server that wrap an agent's architecture investigation. The agent reads the target and writes the findings. The helpers fingerprint the files it cites, hold the report to a strict contract and publish it as an offline snapshot.",
+        "What sets it apart is the set of refusals. An uninvestigated scaffold cannot be published, unanswered questions block a complete run, and a target that moved during the run downgrades the report. The same helpers are reachable from a shell, from an MCP client and through console scripts."
+      ],
+      "claims": [
+        "design-split",
+        "start-scaffold",
+        "finish-gates",
+        "entrypoints"
+      ]
+    },
+    {
+      "id": "components",
+      "title": "The modules and what each owns",
+      "detail": true,
+      "freshness": "verified",
+      "body": [
+        "Each module has one job. The command line and the MCP server are two front doors onto the same investigation code, so behavior cannot drift between them. The installer and the REA bridge sit beside them and are independent of the investigation flow."
+      ],
+      "claims": [
+        "cli-surface",
+        "mcp-wrapper",
+        "installer-guards",
+        "rea-optional",
+        "inventory-selection"
+      ],
+      "table": {
+        "columns": [
+          "Module",
+          "Responsibility"
+        ],
+        "rows": [
+          [
+            "aa_cli.py",
+            "Command parsing and dispatch"
+          ],
+          [
+            "aa_investigation.py",
+            "Workspace, checklist, cite and finish"
+          ],
+          [
+            "aa_inventory.py",
+            "Selecting, hashing and comparing target files"
+          ],
+          [
+            "aa_model.py",
+            "Report contract, validation and hashing"
+          ],
+          [
+            "aa_render.py",
+            "Publishing immutable snapshots"
+          ],
+          [
+            "aa_mcp.py",
+            "MCP stdio server over the same commands"
+          ],
+          [
+            "install.py",
+            "Copying the skill into an agent's skills folder"
+          ],
+          [
+            "rea_bridge.py",
+            "Optional hand-off to a Reverse Engineer Anything command"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "behavior",
+      "title": "From start to a published snapshot",
+      "detail": true,
+      "freshness": "verified",
+      "body": [
+        "start creates a working folder with an inventory, a scaffold report and a checklist, and says nothing about the target. The agent investigates, adds evidence with cite and answers each checklist question with a note.",
+        "finish then refuses an unchanged scaffold and unanswered questions, takes a second inventory and compares it with the first. If anything moved the run is downgraded to partial. Otherwise publish validates the report against the files, takes a lock and writes a new snapshot that is never modified afterwards."
+      ],
+      "claims": [
+        "start-scaffold",
+        "finish-gates",
+        "finish-reinventory",
+        "publish-immutable"
+      ]
+    },
+    {
+      "id": "data",
+      "title": "Evidence, hashes and what they establish",
+      "detail": true,
+      "freshness": "verified",
+      "body": [
+        "A citation is a path, an optional line range and a SHA-256. Validation recomputes the hash, so a citation proves which version of the file was read, not that the claim is right. That relationship stays with the agent and the reader.",
+        "Text is hashed with line endings folded to LF so that checkouts on different systems agree. Binary files are hashed as they are, and older raw hashes remain valid."
+      ],
+      "claims": [
+        "validate-evidence",
+        "hash-normalized",
+        "inventory-selection",
+        "compare-by-hash"
+      ]
+    },
+    {
+      "id": "operations",
+      "title": "Installing and connecting it",
+      "detail": true,
+      "freshness": "verified",
+      "body": [
+        "The installer finds the agents on the machine unless told which one to use, copies the skill under a manifest, and will not overwrite a copy someone edited. The MCP server is a loop over standard input that answers a small set of methods and survives malformed lines.",
+        "REA is only needed for artifacts the source cannot explain. When it is used, its output is saved beside a receipt rather than overwriting earlier results."
+      ],
+      "claims": [
+        "host-detection",
+        "installer-guards",
+        "entrypoints",
+        "mcp-transport",
+        "rea-receipts"
+      ]
+    },
+    {
+      "id": "assessment",
+      "title": "What deserves attention",
+      "detail": false,
+      "freshness": "verified",
+      "body": [
+        "Two behaviors are worth knowing. A change to any selected file during a long run downgrades the whole run, so a busy editor can force a rerun of the affected findings. And comparing against an inventory made before the newline change will show CRLF files as changed once.",
+        "This is a static reading of the helpers' code at one commit. The renderer, the skill's own instructions and the CI workflows were not examined, so nothing here describes the quality of generated reports."
+      ],
+      "claims": [
+        "risk-whole-run",
+        "risk-old-hashes",
+        "render-gap"
+      ]
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "module-map",
+      "title": "How the modules connect",
+      "kind": "component",
+      "freshness": "verified",
+      "nodes": [
+        {
+          "id": "cli",
+          "label": "Command line",
+          "claims": [
+            "cli-surface"
+          ]
+        },
+        {
+          "id": "mcp",
+          "label": "MCP server",
+          "claims": [
+            "mcp-wrapper"
+          ]
+        },
+        {
+          "id": "flow",
+          "label": "Investigation flow",
+          "claims": [
+            "start-scaffold",
+            "finish-gates"
+          ]
+        },
+        {
+          "id": "inv",
+          "label": "Inventory",
+          "claims": [
+            "inventory-selection"
+          ]
+        },
+        {
+          "id": "model",
+          "label": "Report contract",
+          "claims": [
+            "validate-evidence"
+          ]
+        },
+        {
+          "id": "render",
+          "label": "Snapshot publisher",
+          "claims": [
+            "publish-immutable"
+          ]
+        },
+        {
+          "id": "rea",
+          "label": "REA bridge",
+          "claims": [
+            "rea-optional"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "from": "mcp",
+          "to": "cli",
+          "label": "Reuse parser and run",
+          "claims": [
+            "mcp-wrapper"
+          ]
+        },
+        {
+          "from": "cli",
+          "to": "flow",
+          "label": "Dispatch commands",
+          "claims": [
+            "cli-surface"
+          ]
+        },
+        {
+          "from": "flow",
+          "to": "inv",
+          "label": "Inventory at start and finish",
+          "claims": [
+            "finish-reinventory"
+          ]
+        },
+        {
+          "from": "flow",
+          "to": "model",
+          "label": "Hash and validate",
+          "claims": [
+            "validate-evidence",
+            "hash-normalized"
+          ]
+        },
+        {
+          "from": "flow",
+          "to": "render",
+          "label": "Publish a snapshot",
+          "claims": [
+            "publish-immutable"
+          ]
+        },
+        {
+          "from": "cli",
+          "to": "rea",
+          "label": "Optional hand-off",
+          "claims": [
+            "rea-optional"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "run-sequence",
+      "title": "One investigation run",
+      "kind": "sequence",
+      "freshness": "verified",
+      "nodes": [
+        {
+          "id": "agent",
+          "label": "Agent",
+          "claims": [
+            "design-split"
+          ]
+        },
+        {
+          "id": "helpers",
+          "label": "Helpers",
+          "claims": [
+            "start-scaffold"
+          ]
+        },
+        {
+          "id": "target",
+          "label": "Target files",
+          "claims": [
+            "inventory-selection"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "from": "agent",
+          "to": "helpers",
+          "label": "start",
+          "claims": [
+            "start-scaffold"
+          ]
+        },
+        {
+          "from": "helpers",
+          "to": "target",
+          "label": "Inventory and hash",
+          "claims": [
+            "inventory-selection"
+          ]
+        },
+        {
+          "from": "helpers",
+          "to": "agent",
+          "label": "Scaffold and checklist",
+          "claims": [
+            "start-scaffold"
+          ]
+        },
+        {
+          "from": "agent",
+          "to": "helpers",
+          "label": "cite and checklist",
+          "claims": [
+            "validate-evidence",
+            "finish-gates"
+          ]
+        },
+        {
+          "from": "agent",
+          "to": "helpers",
+          "label": "finish",
+          "claims": [
+            "finish-gates"
+          ]
+        },
+        {
+          "from": "helpers",
+          "to": "target",
+          "label": "Inventory again",
+          "claims": [
+            "finish-reinventory"
+          ]
+        },
+        {
+          "from": "helpers",
+          "to": "agent",
+          "label": "Snapshot or refusal",
+          "claims": [
+            "publish-immutable",
+            "finish-reinventory"
+          ]
+        }
+      ]
+    }
+  ]
+}

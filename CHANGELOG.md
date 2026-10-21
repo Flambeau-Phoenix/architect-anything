@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+- **Installer finds your agent.** `install.py` with no `--host` installs for every supported
+  agent whose configuration directory exists, and fails with a clear message when none does
+  (it used to install for Codex whether or not Codex was present). `--host` and
+  `--destination` behave as before.
+- **Line endings no longer change evidence hashes.** Source citations and inventories hash
+  text with CRLF folded to LF, so a Windows and a Linux checkout of the same commit agree.
+  Binary files are still hashed byte for byte, LF-only files keep their old hashes, and
+  reports written with raw-byte hashes still validate. A CRLF file cited by an older report
+  will show as changed in `compare_inventory` once against that older inventory.
+- Published snapshots are written with LF line endings, so `manifest.json` hashes still match after a
+  Git checkout of a snapshot made on Windows.
+- Added `docs/sample-report/`, a report of this repository made by the skill, linked from the README.
+- Lint cleanup: sorted imports, no unused imports, explicit `check=False` on `subprocess.run`.
+
 ## 1.1.0
 
 ### Agent workflow

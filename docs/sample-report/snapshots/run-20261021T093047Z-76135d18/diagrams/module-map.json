@@ -1,0 +1,109 @@
+{
+  "id": "module-map",
+  "title": "How the modules connect",
+  "kind": "component",
+  "freshness": "verified",
+  "nodes": [
+    {
+      "id": "cli",
+      "label": "Command line",
+      "claims": [
+        "cli-surface"
+      ]
+    },
+    {
+      "id": "mcp",
+      "label": "MCP server",
+      "claims": [
+        "mcp-wrapper"
+      ]
+    },
+    {
+      "id": "flow",
+      "label": "Investigation flow",
+      "claims": [
+        "start-scaffold",
+        "finish-gates"
+      ]
+    },
+    {
+      "id": "inv",
+      "label": "Inventory",
+      "claims": [
+        "inventory-selection"
+      ]
+    },
+    {
+      "id": "model",
+      "label": "Report contract",
+      "claims": [
+        "validate-evidence"
+      ]
+    },
+    {
+      "id": "render",
+      "label": "Snapshot publisher",
+      "claims": [
+        "publish-immutable"
+      ]
+    },
+    {
+      "id": "rea",
+      "label": "REA bridge",
+      "claims": [
+        "rea-optional"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "mcp",
+      "to": "cli",
+      "label": "Reuse parser and run",
+      "claims": [
+        "mcp-wrapper"
+      ]
+    },
+    {
+      "from": "cli",
+      "to": "flow",
+      "label": "Dispatch commands",
+      "claims": [
+        "cli-surface"
+      ]
+    },
+    {
+      "from": "flow",
+      "to": "inv",
+      "label": "Inventory at start and finish",
+      "claims": [
+        "finish-reinventory"
+      ]
+    },
+    {
+      "from": "flow",
+      "to": "model",
+      "label": "Hash and validate",
+      "claims": [
+        "validate-evidence",
+        "hash-normalized"
+      ]
+    },
+    {
+      "from": "flow",
+      "to": "render",
+      "label": "Publish a snapshot",
+      "claims": [
+        "publish-immutable"
+      ]
+    },
+    {
+      "from": "cli",
+      "to": "rea",
+      "label": "Optional hand-off",
+      "claims": [
+        "rea-optional"
+      ]
+    }
+  ]
+}

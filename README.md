@@ -21,6 +21,8 @@ Use it when development has moved faster than your documentation, or when you ne
 to understand a particular feature, subsystem or design. Ask in ordinary language;
 your agent investigates and writes the documents.
 
+**[Read a sample report](docs/sample-report/snapshots/run-20261021T093047Z-76135d18/report.md)**: this repository, investigated by the skill itself. The interactive version (search, themes, clickable evidence) is the `report.html` beside it; open it from a clone or download.
+
 ![Architecture report with navigation, findings, evidence and change history](docs/images/report-overview.png)
 
 **Contents:**
@@ -59,13 +61,16 @@ helpers use only the standard library.
 **1. Install the skill.** From a clone of this repository:
 
 ```sh
-python architect-anything/scripts/install.py --host claude
+python architect-anything/scripts/install.py
 ```
+
+With no flag the installer finds the agents already set up on your machine and
+installs for each of them. Name one with `--host` to install only there.
 
 | Agent | Flag | Invoke |
 | --- | --- | --- |
 | Claude Code | `--host claude` | `/architect-anything` |
-| Codex | `--host codex` (default) | `$architect-anything` |
+| Codex | `--host codex` | `$architect-anything` |
 | Antigravity | `--host antigravity` | ask naturally |
 | Other agents that read `~/.agents/skills` | `--host agents` | per your agent |
 
