@@ -1,16 +1,24 @@
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
-from aa_investigation import cite, finish, load, parse_lines, set_checklist, start, status
+from aa_investigation import (
+    cite,
+    finish,
+    load,
+    parse_lines,
+    set_checklist,
+    start,
+    status,
+)
 from aa_model import digest, read_json, validate
 from fixture_factory import create_source, sample_report
 from install import default_destination, install
@@ -141,7 +149,7 @@ class WorkflowWithHelpers(unittest.TestCase):
 
     def cli(self, *args):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-        process = subprocess.run([sys.executable, str(CLI), *map(str, args)], capture_output=True, text=True, env=env)
+        process = subprocess.run([sys.executable, str(CLI), *map(str, args)], capture_output=True, text=True, env=env, check=False)
         return process, json.loads(process.stdout or process.stderr)
 
     def test_cli_cite_checklist_validate_finish(self):
@@ -151,7 +159,7 @@ class WorkflowWithHelpers(unittest.TestCase):
         process, cited = self.cli("cite", workspace, "service.js", "--lines", "5-9", "--note", "Serialized writes", "--append")
         self.assertEqual(process.returncode, 0, process.stderr)
         self.assertTrue(cited["result"]["appended"])
-        path, data = load(workspace)
+        _path, data = load(workspace)
         report = sample_report(self.source, data["id"])
         report["target"] = data["target"]
         write_report = Path(data["paths"]["report"])
@@ -187,7 +195,7 @@ class WorkflowWithHelpers(unittest.TestCase):
                 "workspace": opened["workspace"], "item": "briefing", "status": "bogus"}}},
         ])
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-        process = subprocess.run([sys.executable, str(MCP)], input=frames, capture_output=True, text=True, env=env, timeout=120)
+        process = subprocess.run([sys.executable, str(MCP)], input=frames, capture_output=True, text=True, env=env, timeout=120, check=False)
         by_id = {r["id"]: r["result"] for r in map(json.loads, process.stdout.splitlines())}
         self.assertFalse(by_id[1]["isError"])
         self.assertTrue(by_id[1]["structuredContent"]["result"]["appended"])
@@ -250,7 +258,7 @@ class FinishMessages(unittest.TestCase):
 class Cookbook(unittest.TestCase):
     def test_authoring_snippets_compose_into_a_valid_report(self):
         text = (SKILL/"references/report-authoring.md").read_text(encoding="utf-8")
-        blocks = [json.loads(b) for b in re.findall(r"```json\n(.*?)\n```", text, re.S) if '"sha256"' not in b or "<64" not in b]
+        blocks = [json.loads(b) for b in re.findall(r"```json\n(.*?)\n```", text, re.DOTALL) if '"sha256"' not in b or "<64" not in b]
         by_kind = {}
         for block in blocks:
             by_kind[block.get("kind", "claim" if "authority" in block else "section")] = block

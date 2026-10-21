@@ -1,21 +1,21 @@
 import copy
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
 import xml.etree.ElementTree as ET
+from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
 from aa_inventory import compare_inventory, inventory
-from aa_model import compare_reports, digest, read_json, schema_errors, validate
+from aa_model import compare_reports, read_json, validate
 from aa_render import diagram_svg, publish, render_documents
+from fixture_factory import create_source, sample_report
 from install import install
 from rea_bridge import configuration
-from fixture_factory import create_source, sample_report
 
 
 class Helpers(unittest.TestCase):

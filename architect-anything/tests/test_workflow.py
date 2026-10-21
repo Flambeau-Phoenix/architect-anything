@@ -1,11 +1,10 @@
-import copy
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
 from aa_investigation import finish, load, start, status, write_json
@@ -37,7 +36,7 @@ class Workflow(unittest.TestCase):
 
     def cli(self, *args):
         env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-        return subprocess.run([sys.executable,str(CLI),*map(str,args)],capture_output=True,text=True,env=env)
+        return subprocess.run([sys.executable,str(CLI),*map(str,args)],capture_output=True,text=True,env=env, check=False)
 
     def test_catchup_scaffold_is_not_published(self):
         opened = start(self.source)

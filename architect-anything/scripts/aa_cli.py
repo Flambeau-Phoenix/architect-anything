@@ -4,15 +4,32 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 from aa_inventory import compare_inventory, inventory
-from aa_investigation import (CHECKLIST_STATUSES, CITE_KINDS, DEFAULT_DEPTH, DEPTHS, LENSES, cite, finish,
-                              set_checklist, start, status)
-from aa_model import PACKAGE, SCHEMA, VERSION, compare_reports, json_text, read_json, validate
+from aa_investigation import (
+    CHECKLIST_STATUSES,
+    CITE_KINDS,
+    DEFAULT_DEPTH,
+    DEPTHS,
+    LENSES,
+    cite,
+    finish,
+    set_checklist,
+    start,
+    status,
+)
+from aa_model import (
+    PACKAGE,
+    SCHEMA,
+    VERSION,
+    compare_reports,
+    json_text,
+    read_json,
+    validate,
+)
 from aa_render import publish
 from install import HOSTS
 
@@ -159,7 +176,7 @@ def run(args, p):
             if not operation:
                 raise ValueError("REA run needs an operation after --")
             command += ["--out", args.out, "--", *operation]
-        process = subprocess.run(command, capture_output=True, text=True)
+        process = subprocess.run(command, capture_output=True, text=True, check=False)
         if process.returncode:
             try:
                 details = json.loads(process.stdout or process.stderr)

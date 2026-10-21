@@ -2,8 +2,8 @@
 """Generate an inspectable source fixture and offline report in a new directory."""
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT/"architect-anything"
