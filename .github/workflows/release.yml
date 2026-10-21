@@ -1,0 +1,50 @@
+name: Release
+
+# Pushing a tag like v1.1.0 builds the portable skill archive and the wheel, checks
+# that the tag matches the package version, and attaches them to a GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Check release structure
+        run: python scripts/check_release.py
+      - name: Check tag matches version
+        run: |
+          version="$(python -c "import sys; sys.path.insert(0, 'architect-anything/scripts'); from aa_model import VERSION; print(VERSION)")"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version v${version}" >&2
+            exit 1
+          fi
+      - name: Run behavioral tests
+        run: python -m unittest discover -s architect-anything/tests -v
+      - name: Build archive and wheel
+        run: |
+          python scripts/build_release.py
+          python -m pip wheel --no-deps --wheel-dir dist .
+          cd dist
+          for wheel in *.whl; do sha256sum "$wheel" > "$wheel.sha256"; done
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "${GITHUB_WORKSPACE}"
+          gh release create "${GITHUB_REF_NAME}" dist/*.zip dist/*.zip.sha256 dist/*.whl dist/*.whl.sha256 \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Architect Anything ${GITHUB_REF_NAME#v}" \
+            --notes-file "docs/release-${GITHUB_REF_NAME#v}.md"

@@ -5,11 +5,36 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "architect-anything"
 dynamic = ["version"]
-description = "Evidence-backed architecture investigations for source projects and finished products."
+description = "Evidence-backed architecture investigations for source projects and finished products, as an agent skill, CLI and MCP server."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
+authors = [{name = "Architect Anything contributors"}]
+keywords = [
+  "agent-skill", "claude-code", "codex", "mcp", "architecture", "documentation",
+  "reverse-engineering", "code-comprehension", "rea",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Documentation",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Flambeau-Phoenix/architect-anything"
+Documentation = "https://github.com/Flambeau-Phoenix/architect-anything#readme"
+Issues = "https://github.com/Flambeau-Phoenix/architect-anything/issues"
+Changelog = "https://github.com/Flambeau-Phoenix/architect-anything/blob/main/CHANGELOG.md"
 
 [project.scripts]
 architect-anything = "architect_anything:main"

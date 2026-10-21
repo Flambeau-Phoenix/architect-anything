@@ -44,6 +44,13 @@ Portable form:
 }
 ~~~
 
+Claude Code:
+
+~~~sh
+claude mcp add architect-anything -- architect-anything-mcp
+# portable: claude mcp add architect-anything -- python /path/to/skills/architect-anything/scripts/aa_mcp.py
+~~~
+
 Codex `config.toml`:
 
 ~~~toml
@@ -59,6 +66,8 @@ Restart or reconnect the agent, then confirm that the `aa_*` tools are listed.
 | --- | --- | --- |
 | `aa_start` | `start` | Prepare a catch-up or focused workspace; accepts `depth`, `focus`, `kind`, `output`, `exclude` |
 | `aa_status` | `status` | Read the checklist, depth and report state |
+| `aa_cite` | `cite` | Build a hashed evidence record for a local file; `append` adds it to the working report |
+| `aa_checklist` | `checklist` | Record one checklist answer with its note |
 | `aa_finish` | `finish` | Check freshness and publish the authored report |
 | `aa_validate` | `validate` | Validate a report model and optionally its cited files |
 | `aa_render` | `render` | Publish an authored model without a workspace |
@@ -78,8 +87,9 @@ server.
 
 1. `aa_start` with the target and, for a focused explanation, `focus`. Choose
    `depth` from the request.
-2. Investigate with repository tools or REA; author the working `report.json`
-   and update the checklist.
+2. Investigate with repository tools or REA. Record evidence with `aa_cite`
+   (`append: true`), author claims and sections in the working `report.json`, and
+   record each answer with `aa_checklist`. `aa_status` shows what remains.
 3. `aa_validate` with `check_files`, then `aa_finish` (use `partial` only with
    honest limitations).
 

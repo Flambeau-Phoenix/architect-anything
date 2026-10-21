@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Flambeau-Phoenix/architect-anything/security/advisories/new
+    about: Report vulnerabilities privately; do not open a public issue.
+  - name: Reverse Engineer Anything (REA)
+    url: https://github.com/morluto/rea
+    about: Problems with REA itself, its providers or its tools belong upstream.

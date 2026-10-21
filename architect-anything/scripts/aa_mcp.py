@@ -32,6 +32,14 @@ TOOLS = {
                          "output": STRING, "exclude": EXCLUDE}, ["target"])),
     "aa_status": ("Read an investigation's checklist, depth and report state.",
                   schema({"workspace": STRING}, ["workspace"])),
+    "aa_checklist": ("Record the answer to one investigation checklist item (status plus a concrete note).",
+                     schema({"workspace": STRING, "item": STRING,
+                             "status": {"enum": ["unresolved", "answered", "partial", "not-applicable"]},
+                             "note": STRING}, ["workspace", "item", "status"])),
+    "aa_cite": ("Build a hashed evidence record for a local file; append=true adds it to the working report.",
+                schema({"workspace": STRING, "path": STRING, "lines": STRING, "id": STRING,
+                        "kind": {"enum": ["source", "artifact", "document"]}, "note": STRING,
+                        "append": {"type": "boolean"}}, ["workspace", "path"])),
     "aa_finish": ("Check collection state and publish the authored report as an immutable snapshot.",
                   schema({"workspace": STRING, "partial": {"type": "boolean"}}, ["workspace"])),
     "aa_validate": ("Validate a report model, optionally checking cited local files and hashes.",
@@ -66,6 +74,11 @@ def argv_for(name, a):
                 + flag("--kind", "kind") + flag("--output", "output") + many("--exclude", "exclude"))
     if name == "aa_status":
         return ["status", a["workspace"]]
+    if name == "aa_checklist":
+        return ["checklist", a["workspace"], a["item"], "--status", a["status"]] + flag("--note", "note")
+    if name == "aa_cite":
+        return (["cite", a["workspace"], a["path"]] + flag("--lines", "lines") + flag("--id", "id")
+                + flag("--kind", "kind") + flag("--note", "note") + (["--append"] if a.get("append") else []))
     if name == "aa_finish":
         return ["finish", a["workspace"]] + (["--partial"] if a.get("partial") else [])
     if name == "aa_validate":

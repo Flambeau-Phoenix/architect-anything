@@ -11,13 +11,20 @@ import tempfile
 from aa_model import PACKAGE, digest, json_text, read_json
 
 
+HOSTS = ["codex", "claude", "agents", "antigravity"]
+
+
 def default_destination(host="codex"):
     """Resolve the personal skill directory for a supported agent host."""
     if host == "antigravity":
         return str(Path.home()/".gemini/config/skills/architect-anything")
     if host == "codex":
         return str(Path(os.environ.get("CODEX_HOME", str(Path.home()/".codex")))/"skills/architect-anything")
-    raise ValueError("Host must be codex or antigravity")
+    if host == "claude":
+        return str(Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home()/".claude")))/"skills/architect-anything")
+    if host == "agents":
+        return str(Path.home()/".agents/skills/architect-anything")
+    raise ValueError("Host must be one of: "+", ".join(HOSTS))
 
 
 def install(destination, rea_config=None):
@@ -80,7 +87,7 @@ def install(destination, rea_config=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", choices=["codex", "antigravity"], default="codex")
+    parser.add_argument("--host", choices=HOSTS, default="codex")
     parser.add_argument("--destination", help="Exact architect-anything skill directory; overrides --host")
     parser.add_argument("--rea-config")
     args = parser.parse_args()

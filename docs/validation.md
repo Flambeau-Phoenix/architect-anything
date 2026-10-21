@@ -5,7 +5,7 @@ All investigation examples used synthetic fixtures.
 
 ## Core checks
 
-Forty-five behavioral tests passed using Python 3.14 (version 1.1.0; the first 35
+Sixty-two behavioral tests passed using Python 3.14 (version 1.1.0; the first 35
 were validated on October 20, 2026 for 1.0.0). Public Python sources are
 also checked for Python 3.10 syntax compatibility.
 
@@ -23,7 +23,15 @@ The 1.1.0 tests cover depth checklists and the deep-note guard, legacy manifests
 without depth, installer host destinations, and the MCP server over a real stdio
 subprocess: handshake, tool listing, a start/status workflow, parse errors, tool
 errors that keep the server running, and CLI-equivalent refusal of scaffolds.
-The MCP server was not exercised against a live agent client in this release.
+The `cite` and `checklist` tests cover relative and absolute paths, line bounds,
+idempotent appends, duplicate IDs, URL targets, note rules, the deep-note
+warning, the CLI error envelope, the MCP tools, a helpers-only investigation from
+`start` through `finish`, and that the authoring-cookbook JSON snippets compose
+into a valid report. Installer tests cover the Claude Code and `~/.agents`
+destinations, idempotence and protection of edited files.
+The MCP server was not exercised against a live agent client in this release, and
+the skill was not run end to end inside Claude Code or Antigravity; only Codex
+was used as a live host during development.
 
 The public repository adds release-structure checks and a reproducible source
 demo, focused explanation demo and installable CLI. GitHub Actions is configured

@@ -1,7 +1,26 @@
 # Contributing
 
+Thanks for helping. By taking part you agree to the [code of conduct](CODE_OF_CONDUCT.md).
+
 Keep the skill focused on explaining existing architecture from evidence.
 Prefer a targeted workflow improvement over adding universal rules for one case.
+
+## Repository layout
+
+- `architect-anything/` is the portable skill: `SKILL.md`, `references/`,
+  `scripts/`, `assets/` and `tests/`. It is the only part agents load.
+- `scripts/` (repository root) builds, checks and demonstrates releases.
+- `docs/` holds user guides, release notes and the validation record.
+
+## Changing the skill
+
+`SKILL.md` stays short and routes to `references/`. When you add or change a CLI
+command, keep these in step: the parser in `scripts/aa_cli.py`, the MCP tool in
+`scripts/aa_mcp.py`, `references/agent-cli.md` and `references/mcp-server.md`, the
+quickstart in `SKILL.md`, the changelog, and tests that run the command through
+both the CLI and the MCP server. Version changes go through `aa_model.VERSION`,
+`architect-anything/__init__.py`, the `SKILL.md` metadata and the changelog;
+`scripts/check_release.py` fails when they disagree.
 
 ## Local checks
 

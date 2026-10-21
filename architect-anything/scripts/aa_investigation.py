@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from aa_inventory import compare_inventory, inventory
-from aa_model import PACKAGE, VERSION, json_text, read_json, schema_errors, validate
+from aa_model import PACKAGE, VERSION, digest, json_text, read_json, schema_errors, validate
 from aa_render import publish
 
 CATCH_UP = [
@@ -205,13 +205,118 @@ def load(workspace):
     return path, data
 
 
+def next_step(data, report):
+    """One-sentence pointer to the next unfinished piece of the workflow."""
+    remaining = [row["id"] for row in data["checklist"] if row["status"] == "unresolved"]
+    if remaining:
+        return ("Investigate the unresolved checklist items ("+", ".join(remaining)+"). Record each with "
+                "checklist, cite evidence with cite, and author the matching report sections.")
+    if SCAFFOLD_LIMITATION in report["run"]["limitations"]:
+        return "Replace the scaffold sections and its limitation with evidenced findings, then validate."
+    return "Run validate --check-files on the working report, then finish (or finish --partial with honest limitations)."
+
+
 def status(workspace):
     _, data = load(workspace)
     report = read_json(data["paths"]["report"])
     return {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"], "depth": data["depth"],
             "question": data["question"], "status": data["status"], "checklist": data["checklist"],
+            "remaining": [row["id"] for row in data["checklist"] if row["status"] == "unresolved"],
             "report_validation": validate(report), "previous_report": data["previous_report"],
+            "next": next_step(data, report),
             "notice": "This reads saved investigation state, not live target freshness. A valid model does not establish completeness; validate local evidence or start a new run to refresh."}
+
+
+CHECKLIST_STATUSES = ("unresolved", "answered", "partial", "not-applicable")
+CITE_KINDS = ("source", "artifact", "document")
+
+
+def set_checklist(workspace, item, new_status, note=""):
+    """Record the answer to one checklist row without hand-editing the manifest."""
+    if new_status not in CHECKLIST_STATUSES:
+        raise ValueError("Status must be one of: "+", ".join(CHECKLIST_STATUSES))
+    manifest_path, data = load(workspace)
+    row = next((r for r in data["checklist"] if r["id"] == item), None)
+    if row is None:
+        raise ValueError(f"Unknown checklist item {item!r}; choose from: "+", ".join(r["id"] for r in data["checklist"]))
+    note = (note or "").strip()
+    if new_status != "unresolved" and not note:
+        raise ValueError("Answered, partial and not-applicable checklist entries require an explanatory note")
+    row["status"], row["note"] = new_status, note if new_status != "unresolved" else ""
+    write_json(manifest_path, data)
+    remaining = [r["id"] for r in data["checklist"] if r["status"] == "unresolved"]
+    result = {"item": dict(row), "remaining": remaining}
+    deep = {key for key, _ in DEEP_FOCUS + DEEP_CATCH_UP}
+    if data["depth"] == "deep" and item in deep and new_status in ("answered", "partial") and len(note) < DEEP_NOTE_MINIMUM:
+        result["warning"] = f"Deep investigations need at least {DEEP_NOTE_MINIMUM} characters of concrete explanation for {item}; finish will refuse this note."
+    return result
+
+
+def parse_lines(lines):
+    """Parse 'N' or 'N-M' into a 1-based inclusive range."""
+    if lines is None:
+        return None, None
+    match = re.fullmatch(r"(\d+)(?:-(\d+))?", str(lines).strip())
+    if not match:
+        raise ValueError("Lines must look like 12 or 12-40")
+    start = int(match.group(1))
+    end = int(match.group(2) or start)
+    if start < 1 or end < start:
+        raise ValueError("Lines must be 1-based with the end at or after the start")
+    return start, end
+
+
+def cite(workspace, path, lines=None, ident=None, kind="source", note="", append=False):
+    """Build a schema-valid, hashed evidence record for a local file; optionally add it to the working report."""
+    if kind not in CITE_KINDS:
+        raise ValueError("cite supports kinds: "+", ".join(CITE_KINDS)+". REA and runtime evidence need their own records.")
+    _, data = load(workspace)
+    locator = data["target"]["locator"]
+    requested = Path(path).expanduser()
+    remote = urlparse(locator).scheme in ("http", "https")
+    base = None if remote else (Path(locator).parent if Path(locator).is_file() else Path(locator)).resolve()
+    if base is None and not requested.is_absolute():
+        raise ValueError("This target is a URL; cite a local evidence file by absolute path")
+    file = (requested if requested.is_absolute() else base/requested).resolve()
+    if not file.is_file():
+        raise ValueError(f"Cited file does not exist: {file}")
+    start, end = parse_lines(lines)
+    if start is not None:
+        try:
+            with file.open("r", encoding="utf-8") as stream:
+                count = sum(1 for _ in stream)
+        except UnicodeError:
+            raise ValueError("Line citations need a UTF-8 text file; omit --lines for binary evidence")
+        if end > count:
+            raise ValueError(f"Line range {start}-{end} is outside the file, which has {count} lines")
+    shown = file.relative_to(base).as_posix() if base is not None and file.is_relative_to(base) else str(file)
+    sha = digest(file)
+    record = {"kind": kind, "locator": shown+(f":{start}" if start and start == end else f":{start}-{end}" if start else ""),
+              "note": note or "", "path": shown, "sha256": sha}
+    if start is not None:
+        record["line_start"], record["line_end"] = start, end
+    report_path = Path(data["paths"]["report"])
+    report = read_json(report_path)
+    existing = {e["id"]: e for e in report["evidence"]}
+    same = lambda e: all(e.get(k) == record.get(k) for k in ("path", "sha256", "line_start", "line_end"))
+    if ident is None:
+        stem = re.sub(r"[^A-Za-z0-9]+", "-", shown).strip("-")[-50:].strip("-") or "file"
+        base_id = "ev-"+stem+(f"-L{start}" if start == end and start else f"-L{start}-{end}" if start else "")
+        match = next((e for e in report["evidence"] if same(e)), None)
+        if match:
+            return {"evidence": match, "appended": False, "already_present": True, "report": str(report_path)}
+        ident, n = base_id, 2
+        while ident in existing:
+            ident, n = f"{base_id}-{n}", n+1
+    elif not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,79}", ident):
+        raise ValueError("Evidence ID must start with a letter and use letters, digits, underscore or hyphen (max 80)")
+    elif ident in existing:
+        raise ValueError(f"Evidence ID {ident!r} already exists in the working report")
+    record = {"id": ident, **record}
+    if append:
+        report["evidence"].append(record)
+        write_json(report_path, report)
+    return {"evidence": record, "appended": append, "already_present": False, "report": str(report_path)}
 
 
 def finish(workspace, partial=False):

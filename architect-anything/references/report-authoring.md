@@ -66,6 +66,82 @@ escaped. Do not insert HTML, Mermaid or Markdown syntax into body text and expec
 it to execute/render. Generated Markdown and HTML contain the same findings,
 tables, evidence and diagrams.
 
+## Authoring cookbook
+
+Edit the working `report.json` that `start` created. Replace each scaffold
+`*-unknown` claim and its "not investigated" section with real content, then
+delete the scaffold limitation from `run.limitations`. Get evidence records from
+`cite ... --append` rather than computing hashes by hand.
+
+Evidence (local file, hashed; the CLI produces this record):
+
+```json
+{"id": "ev-src-sync-py-L40-72", "kind": "source", "locator": "src/sync.py:40-72",
+ "note": "Retry loop and backoff", "path": "src/sync.py", "sha256": "<64 hex chars>",
+ "line_start": 40, "line_end": 72}
+```
+
+REA evidence additionally needs a durable saved result and the real Evidence ID:
+`{"id": "ev-rea-main", "kind": "rea", "locator": "analyze_javascript_application",
+"note": "Provider and profile used", "path": "evidence/app-analysis.json",
+"sha256": "...", "evidence_id": "<actual id from the saved result>"}`.
+
+Claim. One fact each; `authority` is `observation`, `derived`, `inference`,
+`contradiction` or `unknown`; only `unknown` may have no evidence:
+
+```json
+{"id": "retry-backoff", "text": "Failed pushes retry up to five times with exponential backoff.",
+ "authority": "observation", "freshness": "verified", "evidence": ["ev-src-sync-py-L40-72"]}
+```
+
+Section. Prose explains how the cited claims relate; `detail: true` hides it from
+the owner-level reading path; the optional table rows must match `columns` in width:
+
+```json
+{"id": "sync-behavior", "title": "How offline sync recovers", "detail": false, "freshness": "verified",
+ "body": ["Pushes queue locally and retry with backoff, so a dropped connection delays but does not lose edits."],
+ "claims": ["retry-backoff"],
+ "table": {"columns": ["Step", "Owner"], "rows": [["Queue edit", "client store"], ["Retry push", "sync worker"]]}}
+```
+
+Component diagram (at most 12 nodes; every node and edge cites claims):
+
+```json
+{"id": "sync-components", "title": "Sync components", "kind": "component", "freshness": "verified",
+ "nodes": [{"id": "client", "label": "Client store", "claims": ["retry-backoff"]},
+           {"id": "worker", "label": "Sync worker", "claims": ["retry-backoff"]}],
+ "edges": [{"from": "client", "to": "worker", "label": "Hand over queued edits", "claims": ["retry-backoff"]}]}
+```
+
+Sequence diagram: same fields with `"kind": "sequence"`. Node order sets the
+participants left to right and edge order sets the message order, so list edges
+chronologically, including the return messages.
+
+### Fixing validation and finish messages
+
+| Message contains | Cause and fix |
+| --- | --- |
+| `missing reference X` | A claim, section or diagram cites an ID that does not exist. Add the record or correct the ID. |
+| `duplicate IDs` / `duplicate node IDs` | IDs must be unique within their group. Rename one. |
+| `factual/inferred claims require evidence` | Add evidence IDs, or change the authority to `unknown` and explain the boundary. |
+| `local evidence requires sha256` | Create the record with `cite`. |
+| `fingerprint changed` / `file unavailable` | The file changed or moved after citing. Re-inspect, re-cite, and mark dependent claims `stale` if not rechecked. |
+| `line range outside file` / `reversed line range` | Correct `line_start`/`line_end`; use `cite --lines A-B`. |
+| `REA citation requires durable file and actual Evidence ID` | Save the REA result to a file and cite its real ID. |
+| `complete run contains unchecked ...` | A complete run needs every claim, section and diagram `verified`. Verify them, or set `run.status` to `partial` with limitations. |
+| `verified presentation contains stale/unverified claims` | A verified section or diagram cites a non-verified claim. Re-verify the claim or lower the presentation's freshness. |
+| `explain section findings or gaps with claims` | Every section cites at least one claim; use an `unknown` claim to state a gap. |
+| `every node/relationship needs claims` / `dangling edge` | Cite claims on each node and edge; edge endpoints must be node IDs. |
+| `table row width mismatch` | Make each row as wide as `columns`. |
+| `incomplete coverage requires explicit limitations` | Add what was not inspected to `run.limitations`. |
+| `target changed during collection` | Files changed between start and finish. Recheck affected findings or finish `--partial`. |
+| `still an uninvestigated scaffold` | Remove the scaffold limitation only after authoring real findings. |
+| `Investigation is unfinished` | Resolve every checklist item with `checklist`, or use `finish --partial`. |
+| `explanatory note` / `Deep investigation notes` | Give each non-unresolved item a concrete note (40+ characters for deep-only items). |
+
+Warnings such as `claim not used in a section or diagram` do not block publication;
+either use the claim or delete it.
+
 ## Diagrams
 
 Supported types: `context`, `component`, `sequence`, `data`, `state`.

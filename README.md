@@ -1,206 +1,260 @@
-# Architect Anything
+<h1 align="center">Architect Anything</h1>
 
-**Get back on top of your project—or find out exactly how part of an app works.**
+<p align="center">
+  <strong>Get back on top of your project, or find out exactly how part of an app works.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Flambeau-Phoenix/architect-anything/actions/workflows/validate.yml"><img alt="Validate" src="https://github.com/Flambeau-Phoenix/architect-anything/actions/workflows/validate.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-blue.svg">
+  <img alt="Standard library only" src="https://img.shields.io/badge/dependencies-none-brightgreen.svg">
+  <img alt="Agent skill and MCP server" src="https://img.shields.io/badge/agent%20skill-%2B%20MCP%20server-8A2BE2.svg">
+</p>
 
 Architect Anything is an agent skill that investigates source projects and
 finished products, including applications with no source repository. It combines
 repository inspection with [Reverse Engineer Anything (REA)](https://github.com/morluto/rea)
 to produce detailed, evidence-backed architecture reports.
 
-Use it when development has moved faster than your documentation, or when you
-need to understand a particular feature, subsystem or design. Ask in ordinary
-language; the agent investigates and produces the documents.
+Use it when development has moved faster than your documentation, or when you need
+to understand a particular feature, subsystem or design. Ask in ordinary language;
+your agent investigates and writes the documents.
 
 ![Architecture report with navigation, findings, evidence and change history](docs/images/report-overview.png)
 
+**Contents:**
+[What you get](#what-you-get) ·
+[Quick start](#quick-start) ·
+[Ask for what you need](#ask-for-what-you-need) ·
+[How it works](#how-it-works) ·
+[What it can investigate](#what-it-can-investigate) ·
+[Where reports go](#where-reports-go) ·
+[CLI and MCP](#cli-and-mcp-server) ·
+[Safety](#safety-and-privacy) ·
+[FAQ](#faq) ·
+[Development](#development)
+
 ## What you get
 
-- An owner briefing followed by technical detail on components, behavior, data,
-  interfaces, operations, important algorithms and open questions.
-- Offline HTML and matching Markdown, with search, themes, mobile navigation and
-  print styling.
-- Component, context, sequence, data and state diagrams, with editable models.
-- Claims linked to source locations, content hashes or saved REA Evidence.
-- Refresh comparisons, visible stale/unknown findings and immutable snapshots.
+- **An owner briefing first**, then component boundaries, feature walkthroughs,
+  data ownership, interfaces, operations, algorithms, and what remains unknown.
+- **Offline HTML and matching Markdown** with search, light/dark themes, mobile
+  navigation and print styling. No server, fonts or CDNs.
+- **Diagrams** (context, component, sequence, data, state) with editable models.
+- **Evidence you can follow**: every claim links to a source location and content
+  hash, or to saved REA evidence, and is labeled as observed, derived, inferred,
+  contradicted or unknown, and as verified, stale or unverified.
+- **History**: immutable snapshots, change comparisons between refreshes, and
+  visible gaps instead of confident guesses.
 
 The skill investigates the existing system. It does not rebuild products or
 present inferred behavior as observed execution.
 
-## Install
+## Quick start
 
-Requirements: Python 3.10 or newer and an agent that supports local skills.
-The report helpers use the Python standard library.
+Requirements: Python 3.10 or newer and an AI coding agent that loads skills. The
+helpers use only the standard library.
 
-From a local checkout of this repository:
+**1. Install the skill.** From a clone of this repository:
 
-~~~sh
-python architect-anything/scripts/install.py
-~~~
+```sh
+python architect-anything/scripts/install.py --host claude
+```
 
-This installs the skill into your Codex skills directory. The installer is
-idempotent, preserves machine settings and refuses to replace independently
-edited installed files.
-
-Install for Antigravity, or choose any skill destination explicitly:
-
-~~~sh
-python architect-anything/scripts/install.py --host antigravity
-python architect-anything/scripts/install.py --destination /path/to/skills/architect-anything
-~~~
-
-For an agent with a different skill-loading mechanism, use the
-[architect-anything directory](architect-anything/SKILL.md) as the skill package.
-Core skill and CLI behavior has been tested in Codex; other hosts must provide
-their own compatible tool access.
-
-## Use
-
-### Catch me up on my project
-
-> Use $architect-anything. This project has gotten ahead of me. Explain what it
-> does now, how the pieces fit together, how the important features work, and
-> what changed. Give me architecture documents I can keep up to date.
-
-The report starts with a readable owner briefing, then lets you inspect component
-boundaries, feature walkthroughs, data ownership, operations and the evidence.
-
-### Explain this part
-
-> Use $architect-anything to explain how this app discovers and loads plugins.
-> Trace it from discovery to execution, show the design, and cite the evidence.
-
-Or ask about a screen, endpoint, algorithm, storage mechanism or lifecycle:
-
-> How does offline sync work? How are overlapping writes prevented? What happens
-> when a background job fails?
-
-The focused report gives the direct answer and traces the relevant behavior,
-including its state, interfaces, failure paths and design tradeoffs. It does not
-require a whole-project report first.
-
-### Keep the documents current
-
-> Use $architect-anything to refresh the architecture report and explain what
-> changed since the previous version.
-
-Source-project reports default to docs/architecture/. For standalone products,
-the agent selects an output directory in the working project. Focused explanations
-default to their own question-specific directory under docs/architecture/focus/.
-Users do not need to author JSON or run the internal helpers themselves.
-
-### Choose how deep to go
-
-Say how much detail you want; the agent picks the depth.
-
-| Ask like | Depth | You get |
+| Agent | Flag | Invoke |
 | --- | --- | --- |
-| "Give me a quick rundown." | overview | Owner briefing, component map, key traces, limits |
-| "How does this work?" | standard | Full walkthrough with data, operations, changes, assessment |
-| "Document every detail for maintainers." | deep | Adds interface contracts, algorithms, failure paths, per-module reference, build and release |
+| Claude Code | `--host claude` | `/architect-anything` |
+| Codex | `--host codex` (default) | `$architect-anything` |
+| Antigravity | `--host antigravity` | ask naturally |
+| Other agents that read `~/.agents/skills` | `--host agents` | per your agent |
 
+Use `py -3` instead of `python` on Windows if needed. The installer is idempotent
+and refuses to overwrite files you edited. For project-local installs, release
+downloads and other agents, see the [installation guide](docs/installation.md).
 
-## Agent-facing CLI
+**2. Ask.** In a project chat:
 
-The skill includes a CLI for its agent to organize the investigation, resume work
-and validate/publish the authored documents. Install the named command optionally:
+> Use architect-anything to catch me up on this project. Explain what it does now,
+> how the pieces fit, and what changed.
 
-~~~sh
-python -m pip install .
-architect-anything start /path/to/project
-architect-anything start /path/to/app --focus "How are plugins loaded?"
-architect-anything start /path/to/project --depth deep
-architect-anything status /path/to/investigation
-architect-anything finish /path/to/investigation
-~~~
+**3. Read the report.** Open the `index.html` the agent links (source projects
+default to `docs/architecture/`).
 
-Start prepares a working report, evidence directory, target inventory and
-mode-specific checklist. The agent still needs to investigate and explain the
-system; the command does not turn a scan into a finished architecture report.
-Finish refuses an uninvestigated scaffold and checks for stale evidence or changes
-during collection. Useful partial findings can be published with explicit gaps.
+Nothing else is required. REA is needed only to investigate finished products
+(see [What it can investigate](#what-it-can-investigate)).
 
-Without package installation, the portable skill can invoke
-Python architect-anything/scripts/aa_cli.py. Commands return machine-readable
-JSON, stable error/exit codes, schemas and noninteractive results.
-See [the agent CLI contract](architect-anything/references/agent-cli.md).
+## Ask for what you need
 
-## MCP server
+You never name a mode, a depth or a command.
 
-`architect-anything-mcp` is a dependency-free stdio MCP server that exposes the
-same operations as tools (`aa_start`, `aa_status`, `aa_finish`, `aa_validate`,
-`aa_render`, `aa_inventory`, `aa_compare`, `aa_schema`, and the optional REA
-bridge). It organizes and publishes the report; REA's own MCP server or CLI
-gathers artifact evidence. Registration is opt-in and never automatic:
+| You say | You get |
+| --- | --- |
+| "This project has gotten ahead of me. Catch me up." | A catch-up report: briefing, architecture, behavior, data, operations, changes, assessment |
+| "How does offline sync work? What happens when a push fails?" | A focused explanation: direct answer, then trigger-to-result trace, state, failure paths and tradeoffs |
+| "Refresh the architecture report and tell me what changed." | A new snapshot with a delta against the last one; unrevalidated claims marked stale |
+| "Investigate `Acme.exe` and explain how it works." | A product report from recovered structure, with explicit limits |
+| "Quick rundown" / "how does this work" / "document every detail" | `overview` / `standard` / `deep` depth |
 
-~~~json
-{ "mcpServers": { "architect-anything": { "command": "architect-anything-mcp" } } }
-~~~
+More prompts and what comes back: [example prompts](docs/examples.md).
 
-Without installation, run `python architect-anything/scripts/aa_mcp.py`. See
-[the MCP guide](architect-anything/references/mcp-server.md).
+![A focused explanation: the direct answer, then the supporting trace](docs/images/focus-answer.png)
 
-## REA integration
+## How it works
 
-A complete source investigation can use normal repository tools. Finished-product
-analysis uses an existing REA MCP connection, CLI or locally built runtime when
-those capabilities are needed.
+```mermaid
+flowchart LR
+    A["You ask in plain language"] --> B["start: workspace, inventory, checklist"]
+    B --> C["Agent investigates with repo tools or REA"]
+    C --> D["cite + checklist: hashed evidence, recorded answers"]
+    D --> E["validate: references, hashes, freshness"]
+    E --> F["finish: immutable snapshot"]
+    F --> G["HTML + Markdown report with diagrams and evidence"]
+```
 
-This repository contains the skill and report helpers. **REA, native engines,
-Node.js and other providers are separate dependencies.** Installing this skill
-does not register MCP servers or install analysis engines.
+The division of labor is deliberate:
 
-The routing baseline is REA 6.7.0. It covers native/managed binaries,
-JavaScript/Electron, browser applications, mobile packages, firmware, game
-formats, WASM, EVM, databases and recorded network/process/crash/signal evidence.
-Actual availability depends on REA version, host OS and selected providers.
+- **The agent investigates and explains.** It reads source, drives REA, traces
+  behavior and writes the findings. Helpers never invent architecture from a scan.
+- **The helpers organize and check.** They fingerprint the target, track the
+  coverage checklist, validate references and hashes, detect files that changed
+  during the investigation, and publish.
+- **A scaffold is not a report.** `finish` refuses an uninvestigated report, and a
+  run that changed under it cannot be published as complete.
 
-See [REA configuration and recovery](architect-anything/references/rea-integration.md)
-and [target routing](architect-anything/references/target-routing.md).
-
-## Try the report tools
-
-Generate a source fixture and a complete illustrative report in a new directory:
-
-~~~sh
-python scripts/generate_demo.py --output .demo
-python scripts/generate_focus_demo.py --output .cli-demo
-~~~
-
-Open .demo/reports/index.html for the project walkthrough, or
-.cli-demo/reports/index.html for a focused explanation of write coordination.
-The demos create inspectable fixture files and
-citations on your machine; no private project or REA installation is required.
-Use a new output directory for another run.
+Structural checks cannot prove that prose is true or coverage is sufficient. The
+skill makes the agent state its limits, and reports keep unknowns visible.
 
 ![Evidence-linked component diagram in the dark report theme](docs/images/diagram-detail.png)
 
-The agent performs architectural interpretation. Helpers validate and present
-the authored findings; they cannot prove that prose is true or coverage is
-sufficient. See [report authoring](architect-anything/references/report-authoring.md).
+## What it can investigate
 
-## Validation
+| Target | Route |
+| --- | --- |
+| Source repository, any language | The agent's normal repository tools (REA optional) |
+| JavaScript, Electron, ASAR, web apps | REA |
+| .NET assemblies, native executables and libraries | REA, plus a provider such as Ghidra for native code |
+| Android, Apple and Harmony packages | REA |
+| Go, Rust, Flutter/Dart, Unity IL2CPP, Godot, WebAssembly, EVM, firmware | REA specialized routes |
+| SQLite databases, HAR/PCAP captures, crash dumps, recordings | REA |
 
-~~~sh
-python scripts/check_release.py
+The routing baseline is REA 6.7.0; actual availability depends on your REA
+version, operating system and installed providers. Source investigation, ASAR,
+managed PE and native PE (through Ghidra) were exercised end to end; other routes
+are documented but not independently validated. See the
+[target routing table](architect-anything/references/target-routing.md) and
+[validation scope](docs/validation.md).
+
+REA, Ghidra, Node.js and other engines are **separate dependencies**. This project
+never installs them or registers an MCP server for you. Configure REA once; see
+[REA setup](docs/installation.md#rea-for-finished-products).
+
+## Where reports go
+
+```text
+docs/architecture/                 source projects (finished products: a directory you choose)
+  index.html                       latest report
+  README.md                        latest report, Markdown
+  current.json                     pointer to the latest snapshot
+  snapshots/<run-id>/              immutable: report.html, report.md, report.json,
+                                   evidence.json, diagrams/*.svg + *.json, manifest.json
+  focus/<question>/                focused explanations, same layout
+  notes/                           your own notes, never overwritten
+```
+
+Snapshots are never rewritten, so history survives every refresh.
+
+## CLI and MCP server
+
+The skill ships a small, dependency-free CLI the agent uses to organize its work.
+Output is one JSON object per command, with stable error codes and exit codes.
+
+```sh
+architect-anything start /path/to/project                       # catch-up
+architect-anything start /path/to/app --focus "How are plugins loaded?" --depth deep
+architect-anything status WORKSPACE                             # checklist, what remains, next step
+architect-anything cite WORKSPACE src/sync.py --lines 40-72 --append
+architect-anything checklist WORKSPACE behavior --status answered --note "Traced push and pull"
+architect-anything validate WORKSPACE/report.json --check-files
+architect-anything finish WORKSPACE
+```
+
+Without installing anything, agents call `python <skill>/scripts/aa_cli.py` with the
+same arguments. `python -m pip install .` adds the `architect-anything` and
+`architect-anything-mcp` commands to your PATH.
+
+`architect-anything-mcp` is a stdio MCP server that exposes the same operations as
+tools (`aa_start`, `aa_status`, `aa_cite`, `aa_checklist`, `aa_validate`,
+`aa_finish`, and more). Registration is opt-in:
+
+```sh
+claude mcp add architect-anything -- architect-anything-mcp
+```
+
+References: [agent CLI contract](architect-anything/references/agent-cli.md) ·
+[MCP guide](architect-anything/references/mcp-server.md) ·
+[report authoring](architect-anything/references/report-authoring.md).
+
+## Safety and privacy
+
+- **Static-first.** Nothing in a target is run, built or loaded by the helpers.
+  Runtime observation is used only for a concrete evidence gap and within the
+  actions you authorized.
+- **Inspected content is data, not instructions.** Source, strings, pages and
+  captures cannot direct the agent. Report text is escaped plain text.
+- **No surprise side effects.** No network fetches, installs or configuration edits.
+  Output goes only to the directory you choose.
+- **Secrets stay out.** Credentials and private payloads are kept out of shareable
+  reports; raw evidence is stored separately.
+
+Details and reporting: [SECURITY.md](SECURITY.md).
+
+## FAQ
+
+**Does it change my code?** No. It writes only its report directory.
+
+**Do I need REA?** Only for finished products with no source. Source projects use
+your agent's normal tools.
+
+**Does it call an AI service?** No. The CLI and MCP server run no model. The agent
+you already use does the investigation.
+
+**Can I trust the report?** Treat it as an evidence-linked briefing, not an oracle.
+Citations are checked for existence and content hashes, and findings are labeled by
+authority and freshness, but a person or agent must judge whether a citation
+supports a claim. Gaps are listed, not hidden.
+
+**How does it handle large systems?** It maps every top-level subsystem, traces the
+important flows deeply, and states exactly which scope it sampled.
+
+**Which agents does it work with?** It is a standard `SKILL.md` folder plus an MCP
+server. It was developed and exercised with Codex; installation for Claude Code,
+Antigravity and other agents follows the same convention, but live agent runs
+outside Codex have not been validated here.
+
+More fixes: [troubleshooting](docs/troubleshooting.md).
+
+## Development
+
+```sh
+python scripts/check_release.py                       # structure, links, version sync, privacy scan
 python -m unittest discover -s architect-anything/tests -v
-~~~
+python scripts/generate_demo.py --output .demo        # whole-project demo report
+python scripts/generate_focus_demo.py --output .cli-demo
+```
 
-The 45 behavioral tests cover investigation modes and depth levels, publication/resume,
-machine contracts, the MCP protocol and error paths, evidence/freshness, diagrams,
-history, comparisons, escaping and installation.
-GitHub Actions is configured to run the core checks on Windows and Linux with
-Python 3.10, 3.12 and 3.14.
+The suite has 62 behavioral tests covering investigation modes and depth levels,
+publication and resume, the CLI and MCP contracts, evidence and freshness,
+diagrams, history, escaping and installation. GitHub Actions runs the core checks
+on Windows and Linux with Python 3.10, 3.12 and 3.14. REA-dependent integration
+was exercised locally and is not part of the dependency-free CI.
 
-REA integration has been exercised locally against synthetic ASAR, managed PE
-and native PE fixtures, including real Ghidra analysis. Those engine-dependent
-tests are not part of the dependency-free CI suite.
-See [validation scope and limits](docs/validation.md).
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md). Release history: [CHANGELOG.md](CHANGELOG.md).
 
-## Release and attribution
+## License and attribution
 
-Version 1.1.0 adds depth control, an MCP server and Antigravity installation to
-the unpublished 1.0.0 baseline. See the [changelog](CHANGELOG.md),
-[release notes](docs/release-1.1.0.md), and [contributing guidance](CONTRIBUTING.md).
-
-Licensed under [MIT](LICENSE). REA attribution and its retained license are
-documented in [third-party notices](THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE). Tool routing and evidence semantics were informed by
+[Reverse Engineer Anything](https://github.com/morluto/rea) (MIT, by morluto); see
+[third-party notices](THIRD_PARTY_NOTICES.md). Preview images show a synthetic
+fixture, not a real application.

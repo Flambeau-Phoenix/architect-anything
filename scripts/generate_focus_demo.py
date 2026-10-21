@@ -24,7 +24,7 @@ def main():
     opened = start(source,output=output/"reports",focus=question)
     manifest_path, manifest = load(opened["workspace"])
     report = sample_report(source,manifest["id"])
-    report["target"] = manifest["target"]
+    report["target"] = dict(manifest["target"], name="Field Notes")
     report["title"] = "Field Notes: how are overlapping writes prevented?"
     report["subtitle"] = "The promise queue, the persistence boundary, and the limit of process-local coordination."
     selected = {"http-boundary","write-flow","serialized-writes","note-model","file-store",

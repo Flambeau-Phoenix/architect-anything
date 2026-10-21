@@ -75,11 +75,12 @@ The JSON result gives the working report, investigation manifest, evidence
 directory, inventory summary and prior report if present. This only prepares the
 work; it does not produce an architectural analysis.
 
-Read the checklist in investigation.json, collect evidence, and author report.json.
-Update each checklist row to answered, partial or not-applicable with a concrete
-note; unresolved means no sufficient answer yet. Use status to resume after
-interruption. Remove the scaffold limitation only after actually investigating.
-Do not fill working sections with guesses to satisfy the checklist.
+Read the checklist from status, collect evidence, and author report.json. Record
+evidence with cite and each answer with checklist (answered, partial or
+not-applicable, always with a concrete note); unresolved means no sufficient
+answer yet. Use status to resume after interruption. Remove the scaffold
+limitation only after actually investigating. Do not fill working sections with
+guesses to satisfy the checklist.
 
 Use finish WORKSPACE to capture the ending inventory, verify citations and
 publish. A normal finish requires a complete authored report and resolved

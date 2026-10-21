@@ -52,9 +52,10 @@ def main():
     manifest = {"version": version, "archive": archive.name, "sha256": sha,
                 "normalization": "Text payloads use LF; fixed ZIP timestamps and permissions.",
                 "files": {name: hashlib.sha256(data).hexdigest() for name,data in payloads.items()}}
-    (output/f"{archive.name}.sha256").write_text(f"{sha}  {archive.name}\n", encoding="utf-8")
+    # LF endings so `sha256sum -c` works on every platform, including archives built on Windows.
+    (output/f"{archive.name}.sha256").write_text(f"{sha}  {archive.name}\n", encoding="utf-8", newline="\n")
     (output/f"architect-anything-{version}.manifest.json").write_text(
-        json.dumps(manifest, indent=2)+"\n", encoding="utf-8")
+        json.dumps(manifest, indent=2)+"\n", encoding="utf-8", newline="\n")
     print(json.dumps({"archive": str(archive), "sha256": sha, "skill_files": len(payloads)}, indent=2))
 
 

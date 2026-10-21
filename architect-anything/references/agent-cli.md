@@ -25,9 +25,28 @@ architect-anything start TARGET
 architect-anything start TARGET --focus "How does offline sync work?"
 architect-anything start TARGET --depth deep
 architect-anything status WORKSPACE
+architect-anything cite WORKSPACE src/sync.py --lines 40-72 --note "Retry loop" --append
+architect-anything checklist WORKSPACE behavior --status answered --note "Traced push and pull paths"
 architect-anything validate WORKING_REPORT.json --check-files
 architect-anything finish WORKSPACE
 ~~~
+
+`status` also returns `remaining` (unresolved checklist IDs) and a `next` sentence.
+
+`cite` resolves PATH against the target (absolute paths are accepted), checks
+that it exists and that `--lines` lies inside it, and returns a schema-valid
+evidence record: relative POSIX path, SHA-256, line range and a generated unique
+ID (override with `--id`). It is idempotent: citing the same file and lines again
+returns the existing record. Without `--append` it only prints the record, so it
+can be pasted into the report; with `--append` it adds the record to the working
+`report.json` and changes nothing else. `--kind` is `source` (default),
+`artifact` or `document`; REA and runtime evidence need their own records with a
+durable file and actual Evidence ID.
+
+`checklist` sets one item to `unresolved`, `answered`, `partial` or
+`not-applicable`. A note is required except when reopening an item. In a deep
+run it warns when a note is shorter than the 40 characters that `finish` needs.
+Use it instead of editing `investigation.json` by hand.
 
 `--depth` is `overview`, `standard` (default) or `deep`. It is stored in the
 manifest, shown by status and selects the checklist: overview keeps the
@@ -59,6 +78,8 @@ unchanged. New findings require a new investigation/snapshot.
 
 | Command | Result |
 | --- | --- |
+| cite WORKSPACE PATH | Build (and optionally append) a hashed evidence record |
+| checklist WORKSPACE ID | Record a checklist answer with its note |
 | schema commands | Discover command help, streams and exit contracts |
 | schema report | Full report JSON Schema |
 | schema investigation | Investigation manifest JSON Schema |
@@ -68,7 +89,7 @@ unchanged. New findings require a new investigation/snapshot.
 | render REPORT --output DIR | Publish an existing authored report model |
 | rea status --config FILE | Probe an existing REA CLI |
 | rea run --config FILE --out FILE -- OPERATION ARGS | Run a selected REA operation and retain output/receipt |
-| install-skill [--host codex\|antigravity] | Install the portable skill for the local agent |
+| install-skill [--host codex\|claude\|agents\|antigravity] | Install the portable skill for the local agent |
 
 The REA bridge preserves operation scope and actual host requirements. A CLI
 probe does not prove a provider is ready or an MCP server is connected.
@@ -86,6 +107,12 @@ Failures write JSON on stderr, leave stdout empty, and exit nonzero:
 ~~~json
 {"ok": false, "command": "validate", "error": {"code": "validation_failed", "message": "Report validation failed"}}
 ~~~
+
+Hosts install into: `codex` (`$CODEX_HOME` or `~/.codex`) `/skills`, `claude`
+(`$CLAUDE_CONFIG_DIR` or `~/.claude`) `/skills`, `agents` `~/.agents/skills`, and
+`antigravity` `~/.gemini/config/skills`. `--destination` overrides them and must
+end in `architect-anything`. For a project-local Claude Code skill use
+`--destination PROJECT/.claude/skills/architect-anything`.
 
 Exit codes: 0 success; 1 report validation failed; 2 invalid arguments/input;
 3 filesystem/process failure; 4 REA unavailable/failed. Error details may contain

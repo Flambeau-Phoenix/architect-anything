@@ -10,9 +10,11 @@ import subprocess
 import sys
 
 from aa_inventory import compare_inventory, inventory
-from aa_investigation import DEFAULT_DEPTH, DEPTHS, finish, start, status
+from aa_investigation import (CHECKLIST_STATUSES, CITE_KINDS, DEFAULT_DEPTH, DEPTHS, cite, finish,
+                              set_checklist, start, status)
 from aa_model import PACKAGE, SCHEMA, VERSION, compare_reports, json_text, read_json, validate
 from aa_render import publish
+from install import HOSTS
 
 
 class CommandError(Exception):
@@ -42,6 +44,19 @@ def parser():
     begin.add_argument("--max-file-bytes", type=int, default=268435456)
     inspect = commands.add_parser("status", help="Read an investigation's checklist and report state")
     inspect.add_argument("workspace")
+    mark = commands.add_parser("checklist", help="Record the answer to one investigation checklist item")
+    mark.add_argument("workspace")
+    mark.add_argument("item", help="Checklist item ID shown by status")
+    mark.add_argument("--status", required=True, choices=list(CHECKLIST_STATUSES))
+    mark.add_argument("--note", default="", help="Concrete explanation; required unless the status is unresolved")
+    ref = commands.add_parser("cite", help="Build a hashed evidence record for a local file")
+    ref.add_argument("workspace")
+    ref.add_argument("path", help="File to cite; relative paths resolve against the target")
+    ref.add_argument("--lines", help="1-based inclusive range such as 12 or 12-40")
+    ref.add_argument("--id", dest="ident", help="Evidence ID; generated from the path and lines by default")
+    ref.add_argument("--kind", choices=list(CITE_KINDS), default="source")
+    ref.add_argument("--note", default="", help="What this evidence shows")
+    ref.add_argument("--append", action="store_true", help="Add the record to the working report's evidence list")
     end = commands.add_parser("finish", help="Check collection state and publish the authored report")
     end.add_argument("workspace")
     end.add_argument("--partial", action="store_true", help="Explicitly publish documented remaining gaps")
@@ -71,7 +86,7 @@ def parser():
             action.add_argument("--out", required=True)
             action.add_argument("arguments", nargs=argparse.REMAINDER)
     install = commands.add_parser("install-skill", help="Install this skill for the local agent")
-    install.add_argument("--host", choices=["codex", "antigravity"], default="codex")
+    install.add_argument("--host", choices=HOSTS, default="codex")
     install.add_argument("--destination", help="Exact architect-anything skill directory; overrides --host")
     install.add_argument("--rea-config")
     return p
@@ -104,6 +119,10 @@ def run(args, p):
                      args.max_file_bytes, args.depth)
     if args.command == "status":
         return status(args.workspace)
+    if args.command == "checklist":
+        return set_checklist(args.workspace, args.item, args.status, args.note)
+    if args.command == "cite":
+        return cite(args.workspace, args.path, args.lines, args.ident, args.kind, args.note, args.append)
     if args.command == "finish":
         return finish(args.workspace, args.partial)
     if args.command == "schema":

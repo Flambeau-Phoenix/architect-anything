@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement to investigations, reports or agent integration
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What are you trying to understand or document?
+      description: Describe the concrete situation, not only the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: What does the skill do today, and what is missing?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Suggested behavior
+      description: Optional. Keep it focused on explaining existing systems from evidence.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Skill instructions, CLI, MCP server, Report format or viewer, Installer, REA routing, Documentation]
+    validations:
+      required: true

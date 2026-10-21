@@ -84,6 +84,8 @@ class Installer(unittest.TestCase):
     def test_host_destinations(self):
         self.assertTrue(default_destination("antigravity").replace("\\", "/").endswith(".gemini/config/skills/architect-anything"))
         self.assertTrue(default_destination("codex").replace("\\", "/").endswith("skills/architect-anything"))
+        self.assertTrue(default_destination("agents").replace("\\", "/").endswith(".agents/skills/architect-anything"))
+        self.assertTrue(default_destination("claude").replace("\\", "/").endswith("skills/architect-anything"))
         with self.assertRaises(ValueError):
             default_destination("unknown")
 
@@ -124,7 +126,7 @@ class McpServer(unittest.TestCase):
         self.assertEqual(by_id[1]["result"]["serverInfo"]["version"], VERSION)
         names = {t["name"] for t in by_id[2]["result"]["tools"]}
         self.assertEqual(names, {"aa_start", "aa_status", "aa_finish", "aa_validate", "aa_render", "aa_inventory",
-                                 "aa_compare", "aa_schema", "aa_rea_status", "aa_rea_run"})
+                                 "aa_compare", "aa_schema", "aa_rea_status", "aa_rea_run", "aa_cite", "aa_checklist"})
         for tool in by_id[2]["result"]["tools"]:
             self.assertEqual(tool["inputSchema"]["type"], "object")
         started = by_id[3]["result"]

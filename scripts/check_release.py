@@ -31,7 +31,12 @@ def check():
                 "architect-anything/assets/REA-LICENSE.txt", "pyproject.toml",
                 "architect-anything/scripts/aa_cli.py", "architect-anything/scripts/aa_mcp.py",
                 "architect-anything/references/mcp-server.md",
-                "architect-anything/references/catch-up-and-focus.md"]
+                "architect-anything/references/catch-up-and-focus.md",
+                "SECURITY.md", "CODE_OF_CONDUCT.md", ".github/PULL_REQUEST_TEMPLATE.md",
+                ".github/dependabot.yml", ".github/workflows/release.yml",
+                ".github/ISSUE_TEMPLATE/bug_report.yml", ".github/ISSUE_TEMPLATE/feature_request.yml",
+                ".github/ISSUE_TEMPLATE/config.yml", "docs/installation.md", "docs/examples.md",
+                "docs/troubleshooting.md", "docs/images/report-overview.png"]
     for name in required:
         if not (ROOT/name).is_file():
             errors.append(f"Missing release file: {name}")
