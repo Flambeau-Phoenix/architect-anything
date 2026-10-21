@@ -27,6 +27,22 @@ code, the state it touches, failure behavior and the design tradeoffs, with a
 sequence diagram and citations. Output goes to `docs/architecture/focus/<question>/`
 and leaves any whole-project report untouched.
 
+## Borrow the idea, not the product
+
+> How does that app keep its overlay in sync with the game? I don't want a copy. I want the
+> trick so I can build my own, in a different engine.
+
+> Use the mechanism lens: how does this plugin system decide load order?
+
+**You get:** a *formula*, not a replica. The core idea in product-neutral terms, the contract
+(what goes in and out, side effects, ordering), what is essential versus incidental to that
+product, what it assumes from the machine around it, and the decisions you would have to make
+for yourself. The agent follows one path from trigger to result, skips presentation, and stops
+once it can state those things. It does not copy the product's code, assets or UI, and it does
+not hand you a rebuild checklist. Tell it what you are building: what counts as essential
+depends on the other machine. (Agents start this with `--lens mechanism`; see
+[mechanism-lens.md](../architect-anything/references/mechanism-lens.md).)
+
 ## Refresh after the code moves on
 
 > Refresh the architecture report and tell me what changed since the last one.

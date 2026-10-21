@@ -23,6 +23,7 @@ Python libraries.
 ~~~text
 architect-anything start TARGET
 architect-anything start TARGET --focus "How does offline sync work?"
+architect-anything start TARGET --focus "How does offline sync resolve conflicts?" --lens mechanism
 architect-anything start TARGET --depth deep
 architect-anything status WORKSPACE
 architect-anything cite WORKSPACE src/sync.py --lines 40-72 --note "Retry loop" --append
@@ -31,7 +32,12 @@ architect-anything validate WORKING_REPORT.json --check-files
 architect-anything finish WORKSPACE
 ~~~
 
-`status` also returns `remaining` (unresolved checklist IDs) and a `next` sentence.
+`--lens mechanism` (requires `--focus`) swaps the focused checklist for one that extracts a
+portable formula: core idea, trace, contract, essentials, assumptions, choices and limits.
+See [Mechanism lens](mechanism-lens.md). The lens is stored in the manifest and shown by
+`status`; a manifest without one behaves as before.
+
+`status` also returns `remaining` (unresolved checklist IDs), a `next` sentence and the `lens`.
 
 `cite` resolves PATH against the target (absolute paths are accepted), checks
 that it exists and that `--lines` lies inside it, and returns a schema-valid

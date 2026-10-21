@@ -1,6 +1,6 @@
 ---
 name: architect-anything
-description: Investigate a codebase or a finished app and write evidence-backed architecture documents. Use when someone says "catch me up on this project", "document the architecture", "how does X work", "explain this feature/subsystem/algorithm", "what changed since the last docs", or wants to understand a binary, package, Electron/web app or other product with no source. Combines repository inspection with REA, and delivers offline HTML and Markdown reports with diagrams, citations, freshness labels and snapshot history. Investigates only; it never implements or clones.
+description: Investigate a codebase or a finished app and write evidence-backed architecture documents. Use when someone says "catch me up on this project", "document the architecture", "how does X work", "explain this feature/subsystem/algorithm", "what changed since the last docs", or wants to understand a binary, package, Electron/web app or other product with no source, or wants the reusable idea behind a feature ("how do they do X so I can build my own") without reproducing the product. Combines repository inspection with REA, and delivers offline HTML and Markdown reports with diagrams, citations, freshness labels and snapshot history. Investigates only; it never implements or clones.
 metadata:
   version: "1.1.0"
 ---
@@ -33,7 +33,7 @@ use the `reverse-engineer-anything` skill directly.
 Every command prints one JSON object; failures print JSON on stderr and exit
 nonzero. Quote paths. With the MCP server connected, use the matching `aa_*` tools.
 
-1. `start ABSOLUTE_TARGET [--focus "question"] [--depth overview|standard|deep]`
+1. `start ABSOLUTE_TARGET [--focus "question"] [--lens mechanism] [--depth overview|standard|deep]`
    creates the workspace, inventory and checklist. Keep the returned `workspace`.
 2. `status WORKSPACE` lists the checklist, what remains and the next step.
 3. Investigate. For each finding, `cite WORKSPACE PATH --lines A-B --note "what it
@@ -61,6 +61,13 @@ Read [Catch-up and focused explanations](references/catch-up-and-focus.md).
   Answer it directly and trace the mechanism from trigger to result, including
   state, interfaces, failure behavior and evidenced design tradeoffs. Keep the
   explanation bounded to the requested behavior and necessary context.
+- **Mechanism (formula) lens:** the user wants the idea behind something so they can
+  build their own, possibly for a different machine. Read
+  [Mechanism lens](references/mechanism-lens.md) and start a focused run with
+  `--lens mechanism`. Extract the portable formula (core idea, contract, what is
+  essential versus incidental, what it assumes from its host, what the builder must
+  decide) from the shortest evidenced path. Skip presentation and do not chase a 1:1
+  reproduction or hand over a rebuild checklist.
 
 Infer the mode from the request. Users do not need to select a template, know the
 architecture, or run helpers themselves. Complete the investigation and deliver

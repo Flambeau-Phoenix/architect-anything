@@ -92,6 +92,7 @@ You never name a mode, a depth or a command.
 | --- | --- |
 | "This project has gotten ahead of me. Catch me up." | A catch-up report: briefing, architecture, behavior, data, operations, changes, assessment |
 | "How does offline sync work? What happens when a push fails?" | A focused explanation: direct answer, then trigger-to-result trace, state, failure paths and tradeoffs |
+| "How do they do X? I want the idea so I can build my own." | A mechanism report: the portable formula (core idea, contract, what is essential, what it assumes, what you must decide), not a replica |
 | "Refresh the architecture report and tell me what changed." | A new snapshot with a delta against the last one; unrevalidated claims marked stale |
 | "Investigate `Acme.exe` and explain how it works." | A product report from recovered structure, with explicit limits |
 | "Quick rundown" / "how does this work" / "document every detail" | `overview` / `standard` / `deep` depth |
@@ -243,7 +244,7 @@ python scripts/generate_demo.py --output .demo        # whole-project demo repor
 python scripts/generate_focus_demo.py --output .cli-demo
 ```
 
-The suite has 67 behavioral tests covering investigation modes and depth levels,
+The suite has 83 behavioral tests covering investigation modes and depth levels,
 publication and resume, the CLI and MCP contracts, evidence and freshness,
 diagrams, history, escaping and installation. GitHub Actions runs the core checks
 on Windows and Linux with Python 3.10, 3.12 and 3.14. REA-dependent integration

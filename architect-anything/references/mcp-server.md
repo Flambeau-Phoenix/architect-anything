@@ -64,7 +64,7 @@ Restart or reconnect the agent, then confirm that the `aa_*` tools are listed.
 
 | Tool | Equivalent CLI | Purpose |
 | --- | --- | --- |
-| `aa_start` | `start` | Prepare a catch-up or focused workspace; accepts `depth`, `focus`, `kind`, `output`, `exclude` |
+| `aa_start` | `start` | Prepare a catch-up or focused workspace; accepts `depth`, `focus`, `lens` (`mechanism`, needs `focus`), `kind`, `output`, `exclude` |
 | `aa_status` | `status` | Read the checklist, depth and report state |
 | `aa_cite` | `cite` | Build a hashed evidence record for a local file; `append` adds it to the working report |
 | `aa_checklist` | `checklist` | Record one checklist answer with its note |

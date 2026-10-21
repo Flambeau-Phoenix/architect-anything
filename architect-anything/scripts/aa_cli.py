@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 from aa_inventory import compare_inventory, inventory
-from aa_investigation import (CHECKLIST_STATUSES, CITE_KINDS, DEFAULT_DEPTH, DEPTHS, cite, finish,
+from aa_investigation import (CHECKLIST_STATUSES, CITE_KINDS, DEFAULT_DEPTH, DEPTHS, LENSES, cite, finish,
                               set_checklist, start, status)
 from aa_model import PACKAGE, SCHEMA, VERSION, compare_reports, json_text, read_json, validate
 from aa_render import publish
@@ -39,6 +39,9 @@ def parser():
     begin.add_argument("--kind", choices=["auto", "source", "product", "hybrid", "capture"], default="auto")
     begin.add_argument("--depth", choices=list(DEPTHS), default=DEFAULT_DEPTH,
                        help="overview: owner-level answer; standard: full walkthrough; deep: verbose technical reference")
+    begin.add_argument("--lens", choices=list(LENSES),
+                       help="mechanism: extract the portable formula of how it works (needs --focus), "
+                            "not a full account of the product")
     begin.add_argument("--exclude", action="append", default=[])
     begin.add_argument("--max-files", type=int, default=100000)
     begin.add_argument("--max-file-bytes", type=int, default=268435456)
@@ -116,7 +119,7 @@ def write_result(path, result):
 def run(args, p):
     if args.command == "start":
         return start(args.target, args.output, args.focus, args.kind, args.exclude, args.max_files,
-                     args.max_file_bytes, args.depth)
+                     args.max_file_bytes, args.depth, args.lens)
     if args.command == "status":
         return status(args.workspace)
     if args.command == "checklist":

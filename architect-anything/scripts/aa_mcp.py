@@ -28,6 +28,8 @@ TOOLS = {
     "aa_start": ("Prepare a catch-up or focused investigation workspace. Does not analyze the target.",
                  schema({"target": STRING, "focus": {"type": "string", "description": "The user's feature or design question"},
                          "depth": {"enum": ["overview", "standard", "deep"]},
+                         "lens": {"enum": ["mechanism"],
+                                  "description": "mechanism: extract the portable formula of how it works (requires focus)"},
                          "kind": {"enum": ["auto", "source", "product", "hybrid", "capture"]},
                          "output": STRING, "exclude": EXCLUDE}, ["target"])),
     "aa_status": ("Read an investigation's checklist, depth and report state.",
@@ -71,7 +73,7 @@ def argv_for(name, a):
 
     if name == "aa_start":
         return (["start", a["target"]] + flag("--focus", "focus") + flag("--depth", "depth")
-                + flag("--kind", "kind") + flag("--output", "output") + many("--exclude", "exclude"))
+                + flag("--lens", "lens") + flag("--kind", "kind") + flag("--output", "output") + many("--exclude", "exclude"))
     if name == "aa_status":
         return ["status", a["workspace"]]
     if name == "aa_checklist":

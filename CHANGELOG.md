@@ -4,6 +4,13 @@
 
 ### Agent workflow
 
+- **Mechanism lens** (`start --focus ... --lens mechanism`, MCP `lens`): extract the portable
+  *formula* behind something, in product-neutral terms, so you can build your own version
+  (even for a different machine) instead of reproducing the product. It swaps the focused
+  checklist for core idea, trace, contract, essentials versus incidental, host assumptions,
+  choices left to the builder and limits, and tells the agent to skip presentation, follow one
+  path and stop early. New `references/mechanism-lens.md`; the lens is stored in the manifest
+  and older manifests are unaffected.
 - `cite` builds a schema-valid, SHA-256-hashed evidence record for a local file
   and line range (`--append` adds it to the working report; repeated citations are
   idempotent), so agents no longer compute fingerprints by hand. MCP: `aa_cite`.
@@ -49,7 +56,7 @@
 - Focused-explanation screenshot; the focused demo no longer exposes a temporary
   directory name.
 - Behavioral tests for depth, the MCP protocol and error paths, installer hosts,
-  `cite`, `checklist` and a helpers-only end-to-end workflow (67 in total).
+  `cite`, `checklist` and a helpers-only end-to-end workflow, plus the mechanism lens (83 in total).
 
 ## 1.0.0
 

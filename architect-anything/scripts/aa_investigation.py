@@ -42,8 +42,23 @@ DEEP_FOCUS = [
     ("failure", "What happens on each evidenced failure path, including concurrency and ordering?"),
     ("alternatives", "Which adjacent code paths or configuration change the behavior?")
 ]
+# The "mechanism" lens: extract a portable formula (how it works, in product-neutral terms) instead
+# of documenting the product. It replaces the focused checklist; it never asks for a rebuild plan.
+MECHANISM = [
+    ("answer", "What is the mechanism's core idea, stated in product-neutral terms?"),
+    ("trace", "What is the shortest evidenced path from trigger to result that supports that account?"),
+    ("contract", "What does it take in and produce, including side effects, timing and ordering?"),
+    ("essentials", "Which parts are essential to the mechanism, and which are incidental to this product (UI, naming, engine quirks)?"),
+    ("assumptions", "What does it assume from its host: state, ordering, timing, platform or data shape?"),
+    ("choices", "What would someone building their own version have to decide for themselves?"),
+    ("limits", "Where does it fail or stop being valid, and what remains unknown?")
+]
 OVERVIEW_CATCH_UP = ("briefing", "components", "behavior", "changes", "assessment")
 OVERVIEW_FOCUS = ("answer", "trace", "limits")
+OVERVIEW_MECHANISM = ("answer", "essentials", "choices", "limits")
+LENSES = ("mechanism",)
+# Sections on the owner-level reading path; every other section is collapsed technical detail.
+OWNER_LEVEL = ("briefing", "answer", "assessment", "limits", "essentials", "choices")
 DEPTHS = ("overview", "standard", "deep")
 DEFAULT_DEPTH = "standard"
 DEEP_NOTE_MINIMUM = 40
@@ -57,17 +72,23 @@ TITLES = {
     "limits": "Evidence and remaining questions", "interfaces": "Interfaces and contracts",
     "algorithms": "Algorithms and state", "failure": "Failure, retry and recovery",
     "modules": "Module reference", "build": "Build, configuration and release",
-    "alternatives": "Related paths and configuration"
+    "alternatives": "Related paths and configuration",
+    "contract": "What goes in and what comes out", "essentials": "The essential part, and what is incidental",
+    "assumptions": "What it assumes from its host", "choices": "What you would decide for yourself"
 }
 
 
-def questions_for(mode, depth):
-    """Return the (id, question) checklist for a mode and depth."""
+def questions_for(mode, depth, lens=None):
+    """Return the (id, question) checklist for a mode, depth and optional lens."""
     if depth not in DEPTHS:
         raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
-    base = FOCUS if mode == "focus" else CATCH_UP
+    if lens is not None and lens not in LENSES:
+        raise ValueError(f"Lens must be one of: {', '.join(LENSES)}")
+    if lens and mode != "focus":
+        raise ValueError("A lens needs a focus: name the mechanism you want to understand")
+    base = MECHANISM if lens == "mechanism" else FOCUS if mode == "focus" else CATCH_UP
     if depth == "overview":
-        keep = OVERVIEW_FOCUS if mode == "focus" else OVERVIEW_CATCH_UP
+        keep = OVERVIEW_MECHANISM if lens == "mechanism" else OVERVIEW_FOCUS if mode == "focus" else OVERVIEW_CATCH_UP
         return [item for item in base if item[0] in keep]
     if depth == "deep":
         return base + (DEEP_FOCUS if mode == "focus" else DEEP_CATCH_UP)
@@ -101,11 +122,15 @@ def prior_report(output, locator):
 
 
 def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=100000, max_bytes=268435456,
-          depth=DEFAULT_DEPTH):
+          depth=DEFAULT_DEPTH, lens=None):
     if depth not in DEPTHS:
         raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
     if focus is not None and not focus.strip():
         raise ValueError("A focus question cannot be blank")
+    if lens is not None and lens not in LENSES:
+        raise ValueError(f"Lens must be one of: {', '.join(LENSES)}")
+    if lens and focus is None:
+        raise ValueError("A lens needs a focus: name the mechanism you want to understand")
     if max_files < 1 or max_bytes < 0:
         raise ValueError("Inventory limits must be positive; max-bytes=0 permits unlimited streaming hashes")
     remote = urlparse(str(target)).scheme in ("http", "https")
@@ -144,7 +169,7 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
         write_json(work/"inventory-start.json", first)
     identity = {"name": name, "kind": selected_kind, "locator": locator,
                 "revision": first["git"]["revision"] if first and first["git"] else None}
-    questions = questions_for(mode, depth)
+    questions = questions_for(mode, depth, lens)
     report = {
         "schema_version": 1, "title": f"{name}: {focus.strip() if focus else 'project catch-up'}",
         "subtitle": "Working investigation. Findings have not yet been established.",
@@ -157,7 +182,7 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
                     "authority": "unknown", "freshness": "unverified", "evidence": []}
                    for key, question in questions],
         "sections": [{"id": key, "title": TITLES[key], "body": ["This topic has not been investigated."],
-                      "claims": [key+"-unknown"], "detail": key not in ("briefing", "answer", "assessment", "limits"),
+                      "claims": [key+"-unknown"], "detail": key not in OWNER_LEVEL,
                       "freshness": "unverified"} for key, _ in questions],
         "diagrams": []
     }
@@ -173,9 +198,11 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
         "inventory_options": {"excludes": patterns, "max_files": max_files, "max_bytes": max_bytes},
         "previous_report": previous
     }
+    if lens:
+        manifest["lens"] = lens
     write_json(work/"investigation.json", manifest)
     return {"workspace": str(work), "manifest": str(work/"investigation.json"), "report": str(work/"report.json"),
-            "mode": mode, "depth": depth, "question": manifest["question"], "previous_report": previous,
+            "mode": mode, "depth": depth, "lens": lens, "question": manifest["question"], "previous_report": previous,
             "inventory_summary": {"files": len(first["files"]), "coverage": first["coverage"]} if first else None,
             "next": "Investigate the checklist using the skill; author claims/sections and evidence, then run finish. This command has not analyzed architectural behavior or published a report."}
 
@@ -190,6 +217,8 @@ def load(workspace):
     if data.get("schema_version") != 1 or data.get("mode") not in ("focus", "catch-up"):
         raise ValueError("Unsupported investigation manifest")
     data.setdefault("depth", DEFAULT_DEPTH)  # 1.0.0 manifests predate depth control
+    if data.get("lens") is not None and data["lens"] not in LENSES:
+        raise ValueError(f"Unsupported investigation lens: {data['lens']!r}")
     work = path.parent
     if data["mode"] == "focus" and (not isinstance(data["question"], str) or not data["question"].strip()):
         raise ValueError("A focused investigation requires its question")
@@ -220,7 +249,7 @@ def status(workspace):
     _, data = load(workspace)
     report = read_json(data["paths"]["report"])
     return {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"], "depth": data["depth"],
-            "question": data["question"], "status": data["status"], "checklist": data["checklist"],
+            "lens": data.get("lens"), "question": data["question"], "status": data["status"], "checklist": data["checklist"],
             "remaining": [row["id"] for row in data["checklist"] if row["status"] == "unresolved"],
             "report_validation": validate(report), "previous_report": data["previous_report"],
             "next": next_step(data, report),
