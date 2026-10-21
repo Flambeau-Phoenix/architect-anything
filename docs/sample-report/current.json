@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "run_id": "run-20261021T093047Z-76135d18",
+  "snapshot": "snapshots/run-20261021T093047Z-76135d18",
+  "pointer_hashes": {
+    "index.html": "a9eaa1216da4a76b882243676734676c157f7a16305813cc1990aa291c2e0722",
+    "README.md": "1b112006044b9e5b1172c9e2edfb9ef933e956e54b253031b4c9db87ddf3f7d8"
+  }
+}

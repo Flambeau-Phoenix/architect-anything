@@ -21,7 +21,7 @@ Use it when development has moved faster than your documentation, or when you ne
 to understand a particular feature, subsystem or design. Ask in ordinary language;
 your agent investigates and writes the documents.
 
-**[Browse a live sample report](docs/sample-report/index.html)**: this repository, investigated by the skill itself.
+**[Read a sample report](docs/sample-report/snapshots/run-20261021T093047Z-76135d18/report.md)**: this repository, investigated by the skill itself. The interactive version (search, themes, clickable evidence) is the `report.html` beside it; open it from a clone or download.
 
 ![Architecture report with navigation, findings, evidence and change history](docs/images/report-overview.png)
 

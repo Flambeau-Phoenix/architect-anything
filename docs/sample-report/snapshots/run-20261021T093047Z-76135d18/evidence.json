@@ -1,0 +1,212 @@
+[
+  {
+    "id": "e-start",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_investigation.py:131-216",
+    "note": "start: option checks, inventory, scaffold report and checklist",
+    "path": "architect-anything/scripts/aa_investigation.py",
+    "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+    "line_start": 131,
+    "line_end": 216
+  },
+  {
+    "id": "e-finish",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_investigation.py:358-418",
+    "note": "finish: scaffold refusal, checklist gate, end inventory, publish",
+    "path": "architect-anything/scripts/aa_investigation.py",
+    "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+    "line_start": 358,
+    "line_end": 418
+  },
+  {
+    "id": "e-cite",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_investigation.py:305-357",
+    "note": "cite: hashed evidence record for a file and line range",
+    "path": "architect-anything/scripts/aa_investigation.py",
+    "sha256": "4789823f72111690be191e0a6ff7132c8f6de8978588d5b2b4e447e97725b234",
+    "line_start": 305,
+    "line_end": 357
+  },
+  {
+    "id": "e-digest",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_model.py:23-52",
+    "note": "digest, text_digest and digest_matches",
+    "path": "architect-anything/scripts/aa_model.py",
+    "sha256": "5e7d05e3c2b64b88f3e4edcf0199f90da1332a408c8ba529c9c0943baadd6f35",
+    "line_start": 23,
+    "line_end": 52
+  },
+  {
+    "id": "e-validate",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_model.py:186-204",
+    "note": "validate --check-files: fingerprint and line-range checks",
+    "path": "architect-anything/scripts/aa_model.py",
+    "sha256": "5e7d05e3c2b64b88f3e4edcf0199f90da1332a408c8ba529c9c0943baadd6f35",
+    "line_start": 186,
+    "line_end": 204
+  },
+  {
+    "id": "e-excludes",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_inventory.py:14-16",
+    "note": "default inventory exclusions",
+    "path": "architect-anything/scripts/aa_inventory.py",
+    "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+    "line_start": 14,
+    "line_end": 16
+  },
+  {
+    "id": "e-inventory",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_inventory.py:26-100",
+    "note": "inventory: selection, hashing, stability, omissions",
+    "path": "architect-anything/scripts/aa_inventory.py",
+    "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+    "line_start": 26,
+    "line_end": 100
+  },
+  {
+    "id": "e-compare",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_inventory.py:107-125",
+    "note": "compare_inventory: hash comparison and coverage change",
+    "path": "architect-anything/scripts/aa_inventory.py",
+    "sha256": "f4d6a2e773802623a79bf2632d1c86ff5694bec3a09a49f4896b2ce63161c5af",
+    "line_start": 107,
+    "line_end": 125
+  },
+  {
+    "id": "e-publish",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_render.py:217-262",
+    "note": "publish: validate, lock, immutable snapshot, pointers",
+    "path": "architect-anything/scripts/aa_render.py",
+    "sha256": "894af10dc7f4ccb5d4aa13678c73bcc73cb0216c82f4d25cedb41b26eb77ed98",
+    "line_start": 217,
+    "line_end": 262
+  },
+  {
+    "id": "e-mcp-top",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_mcp.py:1-8",
+    "note": "MCP server contract",
+    "path": "architect-anything/scripts/aa_mcp.py",
+    "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+    "line_start": 1,
+    "line_end": 8
+  },
+  {
+    "id": "e-mcp-call",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_mcp.py:124-146",
+    "note": "call_tool: MCP calls run through the CLI parser and run()",
+    "path": "architect-anything/scripts/aa_mcp.py",
+    "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+    "line_start": 124,
+    "line_end": 146
+  },
+  {
+    "id": "e-mcp-handle",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_mcp.py:147-174",
+    "note": "handle: JSON-RPC methods and error codes",
+    "path": "architect-anything/scripts/aa_mcp.py",
+    "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+    "line_start": 147,
+    "line_end": 174
+  },
+  {
+    "id": "e-mcp-main",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_mcp.py:175-195",
+    "note": "main: stdio loop that survives bad input",
+    "path": "architect-anything/scripts/aa_mcp.py",
+    "sha256": "1eeeb89b7ff1b7040556a0f3de0a7fe3102f5ada6909c4b92f71883d1bebae94",
+    "line_start": 175,
+    "line_end": 195
+  },
+  {
+    "id": "e-cli",
+    "kind": "source",
+    "locator": "architect-anything/scripts/aa_cli.py:136-192",
+    "note": "run: command dispatch",
+    "path": "architect-anything/scripts/aa_cli.py",
+    "sha256": "4d88d3c0ef8283780421958645d01dd67ece4a8a4eabc2003da3a61e6ce94c5f",
+    "line_start": 136,
+    "line_end": 192
+  },
+  {
+    "id": "e-host",
+    "kind": "source",
+    "locator": "architect-anything/scripts/install.py:29-40",
+    "note": "host_root and detect_hosts",
+    "path": "architect-anything/scripts/install.py",
+    "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+    "line_start": 29,
+    "line_end": 40
+  },
+  {
+    "id": "e-install",
+    "kind": "source",
+    "locator": "architect-anything/scripts/install.py:41-60",
+    "note": "install: destination and integrity guards",
+    "path": "architect-anything/scripts/install.py",
+    "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+    "line_start": 41,
+    "line_end": 60
+  },
+  {
+    "id": "e-install-main",
+    "kind": "source",
+    "locator": "architect-anything/scripts/install.py:103-120",
+    "note": "installer entry point",
+    "path": "architect-anything/scripts/install.py",
+    "sha256": "5ab0b1991385db09151c043ba1e712090df1e44f257428b1494fc9951deab880",
+    "line_start": 103,
+    "line_end": 120
+  },
+  {
+    "id": "e-rea-config",
+    "kind": "source",
+    "locator": "architect-anything/scripts/rea_bridge.py:15-35",
+    "note": "REA CLI discovery",
+    "path": "architect-anything/scripts/rea_bridge.py",
+    "sha256": "50cf87c612a08c2508e346e9fb84b9a61f1b2ac98e0dbcc9138f947ebb71f5f3",
+    "line_start": 15,
+    "line_end": 35
+  },
+  {
+    "id": "e-rea-run",
+    "kind": "source",
+    "locator": "architect-anything/scripts/rea_bridge.py:56-78",
+    "note": "REA run output, sidecar and receipt",
+    "path": "architect-anything/scripts/rea_bridge.py",
+    "sha256": "50cf87c612a08c2508e346e9fb84b9a61f1b2ac98e0dbcc9138f947ebb71f5f3",
+    "line_start": 56,
+    "line_end": 78
+  },
+  {
+    "id": "e-skill-rea",
+    "kind": "source",
+    "locator": "architect-anything/SKILL.md:118-123",
+    "note": "REA is optional for source investigations",
+    "path": "architect-anything/SKILL.md",
+    "sha256": "f6f5f749fa4ee803885805b8821ab554970c7997ffcd78807643cd2e32d8faed",
+    "line_start": 118,
+    "line_end": 123
+  },
+  {
+    "id": "e-pyproject",
+    "kind": "source",
+    "locator": "pyproject.toml:39-42",
+    "note": "console script entry points",
+    "path": "pyproject.toml",
+    "sha256": "52c74aba3bba8b8ce9c01dfa4752308a52312a4dbcb86d643a843f3de03b06f0",
+    "line_start": 39,
+    "line_end": 42
+  }
+]

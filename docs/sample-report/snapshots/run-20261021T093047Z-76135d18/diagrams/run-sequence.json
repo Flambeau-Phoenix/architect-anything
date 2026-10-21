@@ -1,0 +1,89 @@
+{
+  "id": "run-sequence",
+  "title": "One investigation run",
+  "kind": "sequence",
+  "freshness": "verified",
+  "nodes": [
+    {
+      "id": "agent",
+      "label": "Agent",
+      "claims": [
+        "design-split"
+      ]
+    },
+    {
+      "id": "helpers",
+      "label": "Helpers",
+      "claims": [
+        "start-scaffold"
+      ]
+    },
+    {
+      "id": "target",
+      "label": "Target files",
+      "claims": [
+        "inventory-selection"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "agent",
+      "to": "helpers",
+      "label": "start",
+      "claims": [
+        "start-scaffold"
+      ]
+    },
+    {
+      "from": "helpers",
+      "to": "target",
+      "label": "Inventory and hash",
+      "claims": [
+        "inventory-selection"
+      ]
+    },
+    {
+      "from": "helpers",
+      "to": "agent",
+      "label": "Scaffold and checklist",
+      "claims": [
+        "start-scaffold"
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "helpers",
+      "label": "cite and checklist",
+      "claims": [
+        "validate-evidence",
+        "finish-gates"
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "helpers",
+      "label": "finish",
+      "claims": [
+        "finish-gates"
+      ]
+    },
+    {
+      "from": "helpers",
+      "to": "target",
+      "label": "Inventory again",
+      "claims": [
+        "finish-reinventory"
+      ]
+    },
+    {
+      "from": "helpers",
+      "to": "agent",
+      "label": "Snapshot or refusal",
+      "claims": [
+        "publish-immutable",
+        "finish-reinventory"
+      ]
+    }
+  ]
+}
