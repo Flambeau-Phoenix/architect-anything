@@ -28,6 +28,30 @@ def digest(path):
     return h.hexdigest()
 
 
+def text_digest(path):
+    """SHA-256 of a file with CRLF folded to LF, so CRLF and LF checkouts of the same text agree.
+
+    Binary files (a NUL in the first block) are hashed byte for byte, exactly as digest() does.
+    """
+    h = hashlib.sha256()
+    pending = b""
+    with Path(path).open("rb") as stream:
+        for index, block in enumerate(iter(lambda: stream.read(1024 * 1024), b"")):
+            if index == 0 and b"\0" in block:
+                return digest(path)
+            data = pending + block
+            # A CR at the end of a block may be the first half of a CRLF split across blocks.
+            pending = b"\r" if data.endswith(b"\r") else b""
+            h.update((data[:-1] if pending else data).replace(b"\r\n", b"\n"))
+    h.update(pending)
+    return h.hexdigest()
+
+
+def digest_matches(path, expected):
+    """True when a file matches a recorded hash: newline-normalized, or the older raw-byte form."""
+    return expected in (text_digest(path), digest(path))
+
+
 def schema_errors(value, spec=None, at="$"):
     """Validate the intentionally bounded JSON Schema vocabulary used by v1."""
     spec = SCHEMA if spec is None else spec
@@ -165,7 +189,7 @@ def validate(report, check_files=False):
             p = evidence_path(report, ev)
             if not p.is_file():
                 issue = "file unavailable"
-            elif digest(p) != ev.get("sha256"):
+            elif not digest_matches(p, ev.get("sha256")):
                 issue = "fingerprint changed"
             elif "line_start" in ev:
                 with p.open("r", encoding="utf-8") as stream:

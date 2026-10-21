@@ -9,7 +9,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from aa_model import digest
+from aa_model import text_digest
 
 DEFAULT_EXCLUDES = [".git", "node_modules", ".venv", "venv", "__pycache__", ".cache",
                     "docs/architecture"]
@@ -78,7 +78,7 @@ def inventory(target, excludes=(), max_files=100000, max_bytes=268435456):
             if not root.is_file() and max_bytes and before.st_size > max_bytes:
                 omissions.append({"path": rel, "reason": f"over byte limit {max_bytes}"})
                 continue
-            sha = digest(path)
+            sha = text_digest(path)
             after = path.stat()
             stable = (before.st_size, before.st_mtime_ns, before.st_ino) == (
                 after.st_size, after.st_mtime_ns, after.st_ino)

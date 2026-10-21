@@ -12,10 +12,10 @@ from aa_inventory import compare_inventory, inventory
 from aa_model import (
     PACKAGE,
     VERSION,
-    digest,
     json_text,
     read_json,
     schema_errors,
+    text_digest,
     validate,
 )
 from aa_render import publish
@@ -326,7 +326,7 @@ def cite(workspace, path, lines=None, ident=None, kind="source", note="", append
         if end > count:
             raise ValueError(f"Line range {start}-{end} is outside the file, which has {count} lines")
     shown = file.relative_to(base).as_posix() if base is not None and file.is_relative_to(base) else str(file)
-    sha = digest(file)
+    sha = text_digest(file)
     record = {"kind": kind, "locator": shown+(f":{start}" if start and start == end else f":{start}-{end}" if start else ""),
               "note": note or "", "path": shown, "sha256": sha}
     if start is not None:
