@@ -11,6 +11,8 @@
   Binary files are still hashed byte for byte, LF-only files keep their old hashes, and
   reports written with raw-byte hashes still validate. A CRLF file cited by an older report
   will show as changed in `compare_inventory` once against that older inventory.
+- Published snapshots are written with LF line endings, so `manifest.json` hashes still match after a
+  Git checkout of a snapshot made on Windows.
 - Added `docs/sample-report/`, a report of this repository made by the skill, linked from the README.
 - Lint cleanup: sorted imports, no unused imports, explicit `check=False` on `subprocess.run`.
 

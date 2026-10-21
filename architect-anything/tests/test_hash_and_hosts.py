@@ -9,7 +9,8 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/"scripts"))
 import install as installer
 from aa_inventory import compare_inventory, inventory
-from aa_model import digest, digest_matches, text_digest, validate
+from aa_model import digest, digest_matches, read_json, text_digest, validate
+from aa_render import publish
 from fixture_factory import create_source, sample_report
 
 
@@ -78,6 +79,20 @@ class TextDigest(unittest.TestCase):
         delta = compare_inventory(first, second)
         self.assertEqual(delta["changed"], [])
         self.assertTrue(delta["unchanged"])
+
+
+class SnapshotLineEndings(unittest.TestCase):
+    def test_snapshot_files_use_lf_and_match_their_manifest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = create_source(Path(temp)/"src")
+            result = publish(sample_report(source, "run-lf"), Path(temp)/"out")
+            snapshot = Path(result["snapshot"])
+            manifest = read_json(snapshot/"manifest.json")
+            self.assertTrue(manifest)
+            for name, sha in manifest.items():
+                data = (snapshot/name).read_bytes()
+                self.assertNotIn(b"\r\n", data, name)  # a git checkout would rewrite CRLF and break the hash
+                self.assertEqual(digest(snapshot/name), sha, name)
 
 
 class HostDetection(unittest.TestCase):

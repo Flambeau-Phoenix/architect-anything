@@ -239,17 +239,17 @@ def publish(report, output, check_files=True):
             raise ValueError(f"Immutable snapshot already exists: {final}")
         stage = Path(tempfile.mkdtemp(prefix=".aa-stage-", dir=output))
         page, markdown, diagrams = render_documents(report)
-        (stage / "report.html").write_text(page, encoding="utf-8")
-        (stage / "report.md").write_text(markdown, encoding="utf-8")
-        (stage / "report.json").write_text(json_text(report), encoding="utf-8")
-        (stage / "evidence.json").write_text(json_text(report["evidence"]), encoding="utf-8")
+        (stage / "report.html").write_text(page, encoding="utf-8", newline="\n")
+        (stage / "report.md").write_text(markdown, encoding="utf-8", newline="\n")
+        (stage / "report.json").write_text(json_text(report), encoding="utf-8", newline="\n")
+        (stage / "evidence.json").write_text(json_text(report["evidence"]), encoding="utf-8", newline="\n")
         (stage / "diagrams").mkdir()
         for diagram in report["diagrams"]:
             name = diagram["id"]
-            (stage / "diagrams" / f"{name}.svg").write_text(diagrams[name].replace('href="#claim-', 'href="../report.html#claim-'), encoding="utf-8")
-            (stage / "diagrams" / f"{name}.json").write_text(json_text(diagram), encoding="utf-8")
+            (stage / "diagrams" / f"{name}.svg").write_text(diagrams[name].replace('href="#claim-', 'href="../report.html#claim-'), encoding="utf-8", newline="\n")
+            (stage / "diagrams" / f"{name}.json").write_text(json_text(diagram), encoding="utf-8", newline="\n")
         manifest = {p.relative_to(stage).as_posix(): digest(p) for p in sorted(stage.rglob("*")) if p.is_file()}
-        (stage / "manifest.json").write_text(json_text(manifest), encoding="utf-8")
+        (stage / "manifest.json").write_text(json_text(manifest), encoding="utf-8", newline="\n")
         rel = f'snapshots/{report["run"]["id"]}'
         index = f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url={rel}/report.html"><title>{esc(report["title"])}</title></head><body><p><a href="{rel}/report.html">Open the current architecture report</a></p></body></html>'
         readme = f'# {md(report["title"])}\n\n[Current HTML report]({rel}/report.html) · [Markdown]({rel}/report.md)\n\nRun: {report["run"]["id"]}\n\nOlder reports are preserved in `snapshots/`. Keep human notes outside generated snapshots.\n'
