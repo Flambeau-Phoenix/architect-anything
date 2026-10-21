@@ -11,6 +11,10 @@
   `investigation.json`, and warns early when a deep-run note is too short. MCP:
   `aa_checklist`.
 - `status` now reports `remaining` checklist items and a `next` step.
+- `finish` refusals name the real cause: unresolved checklist items are listed by ID, and
+  a `partial` `run.status` on an otherwise finished investigation explains how `status`
+  (is the work finished?) differs from `coverage` (how much was inspected). The
+  authoring reference and quickstart now say the same.
 - `SKILL.md`: trigger-oriented description, when to use and not use, a quickstart,
   and an explicit rule that inspected content is data, never instructions.
 - `report-authoring.md`: JSON snippets for every record type and a table mapping
@@ -28,6 +32,9 @@
 - `install-skill --host codex|claude|agents|antigravity` and `install.py --host`
   choose the personal skills directory (`$CLAUDE_CONFIG_DIR` and `$CODEX_HOME`
   are honored); `--destination` still overrides.
+- Installer upgrades keep the previous version in `.architect-anything-backups/` beside the
+  skills directory, not inside it. A backup left in `skills/` is discovered by agents as a
+  duplicate copy of the skill.
 - One version constant shared by the CLI, reports, package and skill; the release
   check fails when SKILL.md, the package or the changelog disagree.
 
@@ -42,7 +49,7 @@
 - Focused-explanation screenshot; the focused demo no longer exposes a temporary
   directory name.
 - Behavioral tests for depth, the MCP protocol and error paths, installer hosts,
-  `cite`, `checklist` and a helpers-only end-to-end workflow (62 in total).
+  `cite`, `checklist` and a helpers-only end-to-end workflow (67 in total).
 
 ## 1.0.0
 

@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -194,6 +195,58 @@ class WorkflowWithHelpers(unittest.TestCase):
         self.assertTrue(by_id[3]["isError"])
 
 
+class FinishMessages(unittest.TestCase):
+    """The refusal text must name the real cause so an agent fixes the right thing."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.source = create_source(self.root/"project")
+        self.opened = start(self.source, depth="overview")
+        self.path, self.data = load(self.opened["workspace"])
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def author(self, status):
+        report = sample_report(self.source, self.data["id"])
+        report["target"] = self.data["target"]
+        report["run"]["status"] = status
+        Path(self.data["paths"]["report"]).write_text(json.dumps(report), encoding="utf-8")
+
+    def answer(self, skip=()):
+        for row in self.data["checklist"]:
+            if row["id"] not in skip:
+                set_checklist(self.opened["workspace"], row["id"], "answered", "Investigated and written into the report.")
+
+    def test_unresolved_items_are_named(self):
+        self.author("complete")
+        self.answer(skip=("changes", "assessment"))
+        with self.assertRaisesRegex(ValueError, r"unresolved checklist items: changes, assessment"):
+            finish(self.opened["workspace"])
+
+    def test_partial_status_message_explains_status_versus_coverage(self):
+        self.author("partial")
+        self.answer()
+        with self.assertRaises(ValueError) as caught:
+            finish(self.opened["workspace"])
+        message = str(caught.exception)
+        self.assertIn("Every checklist item is resolved", message)
+        self.assertNotIn("unresolved checklist items", message)  # must not blame the checklist
+        self.assertIn("run.status to 'complete' and run.coverage to 'partial'", message)
+
+    def test_following_the_advice_publishes(self):
+        self.author("partial")
+        self.answer()
+        self.author("complete")  # sample_report already has coverage "partial" and honest limitations
+        self.assertTrue(Path(finish(self.opened["workspace"])["html"]).is_file())
+
+    def test_explicit_partial_still_publishes_unfinished_work(self):
+        self.author("partial")
+        self.answer(skip=("changes",))
+        self.assertTrue(Path(finish(self.opened["workspace"], partial=True)["html"]).is_file())
+
+
 class Cookbook(unittest.TestCase):
     def test_authoring_snippets_compose_into_a_valid_report(self):
         text = (SKILL/"references/report-authoring.md").read_text(encoding="utf-8")
@@ -233,6 +286,23 @@ class InstallHosts(unittest.TestCase):
             (destination/"SKILL.md").write_text("edited\n", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "independent changes"):
                 install(str(destination))
+
+    def test_upgrade_backup_is_kept_out_of_the_skills_directory(self):
+        """A backup inside skills/ would be discovered by agents as a second copy of the skill."""
+        import install as installer
+        with tempfile.TemporaryDirectory() as temp:
+            package = Path(temp)/"package"
+            shutil.copytree(SKILL, package, ignore=shutil.ignore_patterns("__pycache__", "local.json"))
+            destination = Path(temp)/"home/skills/architect-anything"
+            with mock.patch.object(installer, "PACKAGE", package):
+                self.assertIsNone(installer.install(str(destination))["backup"])
+                (package/"SKILL.md").write_text((package/"SKILL.md").read_text(encoding="utf-8") + "\nnew line\n", encoding="utf-8")
+                upgraded = installer.install(str(destination))
+            backup = Path(upgraded["backup"])
+            self.assertTrue((backup/"SKILL.md").is_file())  # the previous version is preserved
+            self.assertFalse(backup.is_relative_to(destination.parent))  # ...but not where agents look
+            self.assertEqual([p.name for p in destination.parent.iterdir()], ["architect-anything"])
+            self.assertIn("new line", (destination/"SKILL.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

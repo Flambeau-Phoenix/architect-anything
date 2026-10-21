@@ -5,7 +5,7 @@ All investigation examples used synthetic fixtures.
 
 ## Core checks
 
-Sixty-two behavioral tests passed using Python 3.14 (version 1.1.0; the first 35
+Sixty-seven behavioral tests passed using Python 3.14 (version 1.1.0; the first 35
 were validated on October 20, 2026 for 1.0.0). Public Python sources are
 also checked for Python 3.10 syntax compatibility.
 

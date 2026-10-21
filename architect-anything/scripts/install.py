@@ -67,7 +67,11 @@ def install(destination, rea_config=None):
         (stage/".install-manifest.json").write_text(json_text({"files": manifest}), encoding="utf-8")
         if dest.exists():
             stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-            backup = dest.parent/f".architect-anything-backup-{stamp}"
+            # Keep backups out of the skills directory: an agent that scans it would otherwise
+            # find a second copy of this skill (with its own SKILL.md) next to the real one.
+            backups = dest.parent.parent/".architect-anything-backups"
+            backups.mkdir(exist_ok=True)
+            backup = backups/stamp
             dest.rename(backup)
         try:
             stage.rename(dest)

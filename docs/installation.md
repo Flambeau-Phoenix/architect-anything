@@ -61,7 +61,10 @@ read it.
 ### Updating and removing
 
 Re-run the installer from a newer checkout. If you changed installed files it stops
-and names them; reconcile or remove those edits first. Machine settings
+and names them; reconcile or remove those edits first. The previous version is kept in
+`.architect-anything-backups/` next to your skills directory (for example
+`~/.claude/.architect-anything-backups/`), deliberately outside it so agents do not
+discover it as a second copy of the skill; delete old backups whenever you like. Machine settings
 (`local.json`) are preserved. To uninstall, delete the
 `architect-anything` skills folder.
 

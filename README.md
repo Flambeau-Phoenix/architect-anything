@@ -243,7 +243,7 @@ python scripts/generate_demo.py --output .demo        # whole-project demo repor
 python scripts/generate_focus_demo.py --output .cli-demo
 ```
 
-The suite has 62 behavioral tests covering investigation modes and depth levels,
+The suite has 67 behavioral tests covering investigation modes and depth levels,
 publication and resume, the CLI and MCP contracts, evidence and freshness,
 diagrams, history, escaping and installation. GitHub Actions runs the core checks
 on Windows and Linux with Python 3.10, 3.12 and 3.14. REA-dependent integration

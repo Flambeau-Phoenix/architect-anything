@@ -48,6 +48,13 @@ and inconsistent freshness are rejected.
   (`complete`, `partial`, `unknown`), `tools`, `limitations`, `exclusions`.
   Optional `changes` holds the owner-facing change summary. Optional absolute
   `inventory_start`/`inventory_end` paths must be provided together.
+  **`status` and `coverage` answer different questions.** `status` says whether the
+  investigation is *finished*; `coverage` says how much of the target it *inspected*. A
+  focused, static or sampled investigation that you completed and that has honest limits is
+  `status: complete` with `coverage: partial` (and the limits in `limitations`). Use
+  `status: partial` or `interrupted` only when the work itself is unfinished (blocked,
+  out of time, checklist items genuinely unanswered); publish that with `finish --partial`.
+  A `complete` run needs every claim, section and diagram `verified`.
 - `evidence`: ID, kind, human-readable locator and note; local records also have
   `path`, SHA-256 and optional line range. REA records also have actual `evidence_id`.
 - `claims`: ID, plain-text assertion, authority, freshness and evidence IDs.
@@ -70,7 +77,9 @@ tables, evidence and diagrams.
 
 Edit the working `report.json` that `start` created. Replace each scaffold
 `*-unknown` claim and its "not investigated" section with real content, then
-delete the scaffold limitation from `run.limitations`. Get evidence records from
+delete the scaffold limitation from `run.limitations`. Also replace the generated
+`title` and `subtitle` with ones a reader would choose, and set `target.name` to the
+product's real name when the folder name is not it (the sidebar and header show it). Get evidence records from
 `cite ... --append` rather than computing hashes by hand.
 
 Evidence (local file, hashed; the CLI produces this record):
@@ -136,7 +145,8 @@ chronologically, including the return messages.
 | `incomplete coverage requires explicit limitations` | Add what was not inspected to `run.limitations`. |
 | `target changed during collection` | Files changed between start and finish. Recheck affected findings or finish `--partial`. |
 | `still an uninvestigated scaffold` | Remove the scaffold limitation only after authoring real findings. |
-| `Investigation is unfinished` | Resolve every checklist item with `checklist`, or use `finish --partial`. |
+| `Investigation is unfinished: unresolved checklist items` | Answer each named item with `checklist`, or use `finish --partial`. |
+| `Every checklist item is resolved, but run.status ... is 'partial'` | If you finished and only the scope is limited, set `run.status` to `complete` and `run.coverage` to `partial`. Keep `partial` only for unfinished work, published with `finish --partial`. |
 | `explanatory note` / `Deep investigation notes` | Give each non-unresolved item a concrete note (40+ characters for deep-only items). |
 
 Warnings such as `claim not used in a section or diagram` do not block publication;

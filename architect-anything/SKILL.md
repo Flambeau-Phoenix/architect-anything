@@ -42,8 +42,10 @@ nonzero. Quote paths. With the MCP server connected, use the matching `aa_*` too
    (see [Report authoring](references/report-authoring.md), which has JSON snippets).
 5. `checklist WORKSPACE ID --status answered|partial|not-applicable --note "..."`
    records each answer. An unresolved item means no sufficient answer yet.
-6. `validate REPORT --check-files`, fix what it names, then `finish WORKSPACE`
-   (`--partial` only with honest limitations). Give the user the output links.
+6. `validate REPORT --check-files`, fix what it names, then `finish WORKSPACE`. A finished
+   investigation with a limited scope is `run.status: complete` with `run.coverage:
+   partial`; use `--partial` only for unfinished work, with honest limitations. Give the
+   user the output links.
 
 Users invoke the skill as `/architect-anything` (Claude Code), `$architect-anything`
 (Codex) or by asking naturally; the instructions below are identical.

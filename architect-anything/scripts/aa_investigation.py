@@ -327,9 +327,17 @@ def finish(workspace, partial=False):
     if report["run"]["id"] != data["id"] or any(
             report["target"][key] != data["target"][key] for key in ("kind", "locator")):
         raise ValueError("Report identity differs from its investigation")
-    if not partial and (report["run"]["status"] != "complete" or any(
-            row["status"] == "unresolved" for row in data["checklist"])):
-        raise ValueError("Investigation is unfinished. Resolve the checklist and author verified findings, or explicitly use --partial to publish the stated gaps.")
+    unresolved = [row["id"] for row in data["checklist"] if row["status"] == "unresolved"]
+    if not partial and unresolved:
+        raise ValueError("Investigation is unfinished: unresolved checklist items: "+", ".join(unresolved)
+                         +". Answer each with checklist (answered, partial or not-applicable plus a note), "
+                         "or publish the stated gaps explicitly with --partial.")
+    if not partial and report["run"]["status"] != "complete":
+        raise ValueError(f"Every checklist item is resolved, but run.status in the report is "
+                         f"{report['run']['status']!r}. If the investigation is finished and only its scope is limited, "
+                         "set run.status to 'complete' and run.coverage to 'partial' (and list what was not inspected "
+                         "in run.limitations). Keep run.status 'partial' or 'interrupted' only for an unfinished "
+                         "investigation, and then publish it with --partial.")
     if partial and report["run"]["status"] == "complete" and any(
             row["status"] == "unresolved" for row in data["checklist"]):
         raise ValueError("A complete report cannot contain unresolved investigation questions")
