@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 PACKAGE = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((PACKAGE / "assets/report.schema.json").read_text(encoding="utf-8"))
 

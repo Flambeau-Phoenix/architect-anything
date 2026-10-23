@@ -1,91 +1,87 @@
+
 # Changelog
 
-## Unreleased
+## [1.2.0] 
 
-- **Installer finds your agent.** `install.py` with no `--host` installs for every supported
-  agent whose configuration directory exists, and fails with a clear message when none does
-  (it used to install for Codex whether or not Codex was present). `--host` and
-  `--destination` behave as before.
-- **Line endings no longer change evidence hashes.** Source citations and inventories hash
-  text with CRLF folded to LF, so a Windows and a Linux checkout of the same commit agree.
-  Binary files are still hashed byte for byte, LF-only files keep their old hashes, and
-  reports written with raw-byte hashes still validate. A CRLF file cited by an older report
-  will show as changed in `compare_inventory` once against that older inventory.
-- Published snapshots are written with LF line endings, so `manifest.json` hashes still match after a
-  Git checkout of a snapshot made on Windows.
-- Added `docs/sample-report/`, a report of this repository made by the skill, linked from the README.
-- Lint cleanup: sorted imports, no unused imports, explicit `check=False` on `subprocess.run`.
+### New Features
 
-## 1.1.0
+* **4 New Specialized Investigation Lenses (`--lens`)**:
+* **`onboarding`**: 60-second mental model, entry points & boot sequence, "where to change X" codemap, local dev/test loop, and invariant landmines.
+* **`delta`**: Breaking contract changes, data/persistence shifts, dependency boundary changes, and doc-vs-code drift.
+* **`boundaries`**: External entry points, trust/isolation boundaries, untrusted input validation, outbound calls/IPC, and secrets handling.
+* **`operations`**: Startup/shutdown draining, configuration precedence, state concurrency, timeouts/retries/backpressure, observability, and crash recovery.
+* *All 4 new lenses work in both `catch-up` and `focus` modes across `overview`, `standard`, and `deep` depths alongside `mechanism`.*
 
-### Agent workflow
 
-- **Mechanism lens** (`start --focus ... --lens mechanism`, MCP `lens`): extract the portable
-  *formula* behind something, in product-neutral terms, so you can build your own version
-  (even for a different machine) instead of reproducing the product. It swaps the focused
-  checklist for core idea, trace, contract, essentials versus incidental, host assumptions,
-  choices left to the builder and limits, and tells the agent to skip presentation, follow one
-  path and stop early. New `references/mechanism-lens.md`; the lens is stored in the manifest
-  and older manifests are unaffected.
-- `cite` builds a schema-valid, SHA-256-hashed evidence record for a local file
-  and line range (`--append` adds it to the working report; repeated citations are
-  idempotent), so agents no longer compute fingerprints by hand. MCP: `aa_cite`.
-- `checklist` records one checklist answer with its note, replacing hand edits to
-  `investigation.json`, and warns early when a deep-run note is too short. MCP:
-  `aa_checklist`.
-- `status` now reports `remaining` checklist items and a `next` step.
-- `finish` refusals name the real cause: unresolved checklist items are listed by ID, and
-  a `partial` `run.status` on an otherwise finished investigation explains how `status`
-  (is the work finished?) differs from `coverage` (how much was inspected). The
-  authoring reference and quickstart now say the same.
-- `SKILL.md`: trigger-oriented description, when to use and not use, a quickstart,
-  and an explicit rule that inspected content is data, never instructions.
-- `report-authoring.md`: JSON snippets for every record type and a table mapping
-  validation and finish messages to fixes. A test keeps the snippets valid.
+* **Optional Companion Report Packs (`--emit`)**:
+* Pass `--emit <pack>` (repeatable, comma-separated, or `all`) to `start`, `finish`, or `render` (and MCP tools `aa_start`, `aa_finish`, `aa_render`):
+* **`mermaid`**: Exports `diagrams/<id>.mmd` and embeds fenced `mermaid` blocks in `report.md`.
+* **`adr`**: Generates `packs/adr-summary.md` synthesizing architectural decisions, tradeoffs, and evidence locators.
+* **`onboarding`**: Generates `packs/onboarding-codemap.md` indexing sections, contract tables, and cited files.
+* **`delta`**: Generates `packs/architecture-delta.md` with automated claim-level diffing against `previous_report`.
+* **`llms-txt`**: Generates `packs/llms-architecture.txt` as a compact, token-efficient summary with `path:line` citations for coding agents.
 
-### Depth, MCP and hosts
 
-- Depth control: `start --depth overview|standard|deep` selects an owner-level
-  answer, the full walkthrough, or a verbose technical reference. The depth is
-  recorded in the investigation manifest and drives its checklist; deep runs
-  require concrete notes. Manifests from 1.0.0 load as `standard`.
-- Architect Anything MCP server (`architect-anything-mcp`, standard library only,
-  stdio) exposing start, status, finish, validate, render, inventory, compare,
-  schema and the optional REA bridge as tools with the CLI's stable error codes.
-- `install-skill --host codex|claude|agents|antigravity` and `install.py --host`
-  choose the personal skills directory (`$CLAUDE_CONFIG_DIR` and `$CODEX_HOME`
-  are honored); `--destination` still overrides.
-- Installer upgrades keep the previous version in `.architect-anything-backups/` beside the
-  skills directory, not inside it. A backup left in `skills/` is discovered by agents as a
-  duplicate copy of the skill.
-- One version constant shared by the CLI, reports, package and skill; the release
-  check fails when SKILL.md, the package or the changelog disagree.
+
+
+* **Structured Report Authoring Tools (MCP & CLI)**:
+* Added MCP tools `aa_upsert_claim`, `aa_upsert_section`, `aa_upsert_diagram`, and `aa_set_run_meta` (alongside CLI equivalents `upsert-claim`, `upsert-section`, `upsert-diagram`, and `set-meta`).
+* Eliminates manual `report.json` file editing during MCP runs, validates references on write, automatically prunes replaced `*-unknown` scaffold claims, and clears `SCAFFOLD_LIMITATION` once all scaffold sections are authored.
+
+
+* **First-Class MCP Primitives (`annotations`, `resources`, `prompts`)**:
+* **Tool Annotations**: Every tool advertises `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint` so MCP clients can auto-approve read-only queries (`aa_status`, `aa_validate`, `aa_compare`, `aa_schema`, `aa_rea_status`).
+* **MCP Resources**: `aa://schema/report`, `aa://schema/investigation`, `aa://guide/lenses-and-packs`, `aa://workspace/{workspace}/status`, and `aa://workspace/{workspace}/report`.
+* **MCP Prompts**: `catch-up`, `explain-feature`, and `extract-mechanism`.
+
+
+* **Standard Python Packaging**:
+* `pip install .` now cleanly installs both `architect-anything` and `architect-anything-mcp` console scripts.
+
+
+
+### Polish & Fixes
+
+* **Direct MCP Domain Dispatch & Protocol Hardening**: Replaced string-flag round-tripping (`argv_for` → `argparse`) in the MCP server with direct Python function dispatch and JSON Schema validation via `schema_errors()`. Added JSON-RPC 2.0 batch support and preserved request `id` on `-32603` internal error responses.
+* **2D Layered SVG Diagrams**: Upgraded diagram rendering logic to compute topological rank for multi-node `context`, `component`, `data`, and `state` diagrams, rendering multi-column layouts with smooth cubic Bézier curves.
+* **Typography & Interactive Claim Previews**: Added XSS-safe inline ``code`` and `**bold**` rendering alongside floating claim preview tooltips on hover/focus.
+* **Stale Lock Recovery**: Publication workflows now automatically recover from leftover `.architect-publish.lock` files when the holder PID is dead or the lock is stale.
+
+---
+
+## [1.1.0]
+
+### Agent Workflow
+
+* **Mechanism Lens** (`start --focus ... --lens mechanism`, MCP `lens`): Extract the portable *formula* behind something in product-neutral terms so you can build your own version. Swaps the focused checklist for core idea, trace, contract, essentials versus incidental, host assumptions, choices left to the builder, and limits.
+* **Citations (`cite` / `aa_cite`)**: Builds a schema-valid, SHA-256-hashed evidence record for a local file and line range (`--append` adds it to the working report; repeated citations are idempotent).
+* **Checklist Management (`checklist` / `aa_checklist`)**: Records one checklist answer with its note, replacing hand edits to `investigation.json`, and warns early when a deep-run note is too short.
+* **Status Updates**: Now reports `remaining` checklist items and a clear `next` step.
+* **Finish Refusals**: Explicitly name unresolved checklist items by ID, clarifying how `status` (is work finished?) differs from `coverage` (how much was inspected).
+* **Documentation & Skills**: Updated `SKILL.md` with trigger-oriented descriptions, quickstarts, and rules treating inspected content strictly as data, never instructions. Added complete JSON snippets and error-mapping tables to `report-authoring.md`.
+
+### Depth, MCP, and Hosts
+
+* **Depth Control**: `start --depth overview|standard|deep` selects owner-level answers, full walkthroughs, or verbose technical references. Deep runs require concrete notes. Manifests from 1.0.0 load as `standard`.
+* **Architect Anything MCP Server**: Standard library only, stdio-based server exposing start, status, finish, validate, render, inventory, compare, schema, and optional REA bridge tools.
+* **Installer Enhancements**: `install-skill --host` and `install.py --host` choose personal configuration directories while respecting environment variables (`$CLAUDE_CONFIG_DIR`, `$CODEX_HOME`). Installer upgrades now store backups in `.architect-anything-backups/` beside the skills directory rather than inside it.
+* **Version Alignment**: Enforced a single version constant shared by CLI, reports, package, and skills; release checks fail if discrepancies are detected.
 
 ### Repository
 
-- Rewritten README with per-agent quick start, how-it-works diagram, supported
-  targets, safety notes and FAQ; new installation, example-prompt and
-  troubleshooting guides.
-- `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue and pull-request templates,
-  Dependabot for GitHub Actions, and a tag-driven release workflow.
-- Package metadata (authors, keywords, classifiers, project URLs).
-- Focused-explanation screenshot; the focused demo no longer exposes a temporary
-  directory name.
-- Behavioral tests for depth, the MCP protocol and error paths, installer hosts,
-  `cite`, `checklist` and a helpers-only end-to-end workflow, plus the mechanism lens (83 in total).
+* **Documentation Overhaul**: Rewritten README with per-agent quick start, architecture diagram, supported targets, safety notes, FAQ, and dedicated installation/troubleshooting guides.
+* **Governance & Standards**: Added `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue/PR templates, Dependabot for GitHub Actions, and a tag-driven release workflow alongside rich package metadata.
+* **Testing**: Expanded behavioral test suite covering depth, MCP protocol, error paths, installer hosts, citations, checklists, and helpers-only end-to-end workflows (83 total tests).
 
-## 1.0.0
+---
 
-Baseline for 1.1.0; not released separately.
+## [1.0.0] — Baseline
 
-- Catch-up reports for projects that have outgrown their owners' documentation.
-- Focused explanations of selected features, mechanisms and design questions.
-- Installable agent CLI with investigation workspaces, schemas, JSON results,
-  resume/status and checked publication.
-- Source-project and finished-product investigation workflows.
-- REA 6.7.0 target routing and CLI/MCP integration guidance.
-- Offline HTML and Markdown reports, evidence indexes and editable SVG diagrams.
-- Fingerprint inventories, evidence validation, findings comparisons and snapshots.
-- Mobile navigation, search, themes and print styling.
-- Idempotent skill installation with protection for independent edits.
-- Thirty-five behavioral tests, whole-project/focused demos and cross-platform CI.
+* Baseline release establishing core investigation workflows:
+* Catch-up reports for projects that have outgrown owner documentation.
+* Focused explanations of selected features, mechanisms, and design questions.
+* Installable agent CLI with investigation workspaces, schemas, JSON results, resume/status, and checked publication.
+* Source-project and finished-product workflows with REA target routing and CLI/MCP integration guidance.
+* Offline HTML and Markdown reports, evidence indexes, and editable SVG diagrams.
+* Fingerprint inventories, evidence validation, findings comparisons, snapshots, mobile navigation, search, themes, and print styling.
+* Idempotent skill installation with protection for independent edits.

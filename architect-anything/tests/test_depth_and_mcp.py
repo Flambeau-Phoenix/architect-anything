@@ -133,10 +133,14 @@ class McpServer(unittest.TestCase):
         self.assertEqual(by_id[1]["result"]["protocolVersion"], "2025-03-26")
         self.assertEqual(by_id[1]["result"]["serverInfo"]["version"], VERSION)
         names = {t["name"] for t in by_id[2]["result"]["tools"]}
-        self.assertEqual(names, {"aa_start", "aa_status", "aa_finish", "aa_validate", "aa_render", "aa_inventory",
-                                 "aa_compare", "aa_schema", "aa_rea_status", "aa_rea_run", "aa_cite", "aa_checklist"})
+        self.assertEqual(names, {
+            "aa_start", "aa_status", "aa_finish", "aa_validate", "aa_render", "aa_inventory",
+            "aa_compare", "aa_schema", "aa_rea_status", "aa_rea_run", "aa_cite", "aa_checklist",
+            "aa_upsert_claim", "aa_upsert_section", "aa_upsert_diagram", "aa_set_run_meta",
+        })
         for tool in by_id[2]["result"]["tools"]:
             self.assertEqual(tool["inputSchema"]["type"], "object")
+            self.assertIn("annotations", tool)
         started = by_id[3]["result"]
         self.assertFalse(started["isError"])
         self.assertEqual(started["structuredContent"]["result"]["depth"], "overview")

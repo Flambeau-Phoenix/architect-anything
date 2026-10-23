@@ -29,6 +29,25 @@
     });
     document.querySelector('#search-status').textContent = query ? `${visible} matching sections` : '';
   });
+  const popover = document.querySelector('#claim-popover');
+  if (popover) {
+    document.querySelectorAll('a.claim-ref[data-claim-tip]').forEach(link => {
+      const show = () => {
+        popover.textContent = link.dataset.claimTip;
+        popover.hidden = false;
+        const rect = link.getBoundingClientRect();
+        const top = Math.max(12, rect.top - popover.offsetHeight - 8);
+        const left = Math.min(window.innerWidth - popover.offsetWidth - 16, Math.max(12, rect.left));
+        popover.style.top = `${top}px`;
+        popover.style.left = `${left}px`;
+      };
+      const hide = () => { popover.hidden = true; };
+      link.addEventListener('mouseenter', show);
+      link.addEventListener('focus', show);
+      link.addEventListener('mouseleave', hide);
+      link.addEventListener('blur', hide);
+    });
+  }
   function revealHash() {
     let id;
     try { id = decodeURIComponent(location.hash.slice(1)); } catch (_) { return; }

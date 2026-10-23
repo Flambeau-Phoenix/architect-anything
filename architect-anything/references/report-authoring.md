@@ -30,6 +30,10 @@ hypothetical improvements.
 that example wording cannot masquerade as findings.
 
 ```text
+python scripts/aa_cli.py upsert-claim WORKSPACE CLAIM_ID --text "..." --authority observation --evidence EV_ID
+python scripts/aa_cli.py upsert-section WORKSPACE SEC_ID --body "..." --claim CLAIM_ID
+python scripts/aa_cli.py upsert-diagram WORKSPACE DIAG_ID --title "..." --kind component --nodes-json "[...]" --edges-json "[...]"
+python scripts/aa_cli.py set-meta WORKSPACE --title "..." --subtitle "..." --run-status complete --coverage partial --limitation "..."
 python scripts/architect.py validate report.json --check-files
 python scripts/architect.py render report.json --output OUTPUT
 ```
@@ -68,18 +72,18 @@ sections are reordered. Keep facts in claims; make the prose explain their
 relationship. Every factual assertion in a section must be supported by one of
 its cited claims. The helper cannot semantically verify this relationship.
 
-All user/target strings are **plain text**. HTML and Markdown metacharacters are
-escaped. Do not insert HTML, Mermaid or Markdown syntax into body text and expect
-it to execute/render. Generated Markdown and HTML contain the same findings,
-tables, evidence and diagrams.
+All user/target strings are **plain text** (with safe inline `` `code` `` and
+`**bold**` formatting rendered in HTML after strict escaping). Raw HTML and
+script tags are always escaped. Generated Markdown and HTML contain the same
+findings, tables, evidence and diagrams.
 
 ## Authoring cookbook
 
-Edit the working `report.json` that `start` created. Replace each scaffold
-`*-unknown` claim and its "not investigated" section with real content, then
-delete the scaffold limitation from `run.limitations`. Also replace the generated
-`title` and `subtitle` with ones a reader would choose, and set `target.name` to the
-product's real name when the folder name is not it (the sidebar and header show it). Get evidence records from
+Prefer the structured authoring helpers (`upsert-claim`, `upsert-section`,
+`upsert-diagram`, `set-meta` or MCP `aa_upsert_*` / `aa_set_run_meta`), which
+validate references on write and automatically prune replaced `*-unknown` scaffold
+claims and clear the scaffold limitation once all scaffold sections are replaced.
+You can also edit the working `report.json` directly. Get evidence records from
 `cite ... --append` rather than computing hashes by hand.
 
 Evidence (local file, hashed; the CLI produces this record):
@@ -155,16 +159,16 @@ either use the claim or delete it.
 ## Diagrams
 
 Supported types: `context`, `component`, `sequence`, `data`, `state`.
-The first, second, fourth and fifth use a directed relationship map; sequence
-uses ordered messages between lifelines. Each output includes an SVG and the
-editable diagram JSON.
+The first, second, fourth and fifth use a layered directed relationship map; sequence
+uses ordered messages between lifelines. Each output includes an SVG, the
+editable diagram JSON, and (when `--emit mermaid` is enabled) `.mmd` Mermaid sources.
 
 Keep each view focused, with at most 12 nodes; use several diagrams for larger
 systems. Edges have numbered labels tied to a readable relationship list so long
-labels do not collide with paths. Node order controls vertical placement or
-sequence participants; edge order controls sequence chronology. Back edges and
-self-loops are preserved. Mark inferred or stale relationships through the
-supporting claims and appropriate diagram freshness.
+labels do not collide with paths. Node order and topological rank control placement;
+edge order controls sequence chronology. Back edges and self-loops are preserved.
+Mark inferred or stale relationships through the supporting claims and appropriate
+diagram freshness.
 
 Use a context view for external boundaries, a component view for responsibilities,
 a sequence for a concrete feature, a data view for ownership/transfers, and a

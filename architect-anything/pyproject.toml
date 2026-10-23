@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "architect-anything"
+version = "1.2.0"
+description = "Evidence-backed architecture investigation skill, CLI, and MCP server"
+readme = "SKILL.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Architect Anything Contributors" }]
+dependencies = []
+
+[project.scripts]
+architect-anything = "architect_anything:main"
+architect-anything-mcp = "architect_anything:mcp_main"
+
+[tool.setuptools]
+package-dir = { "architect_anything" = "." }
+packages = ["architect_anything", "architect_anything.scripts"]
+
+[tool.setuptools.package-data]
+architect_anything = [
+    "SKILL.md",
+    "LICENSE",
+    "agents/*.yaml",
+    "assets/*",
+    "examples/*.json",
+    "references/*.md",
+]

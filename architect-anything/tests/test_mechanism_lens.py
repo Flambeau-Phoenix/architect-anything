@@ -54,9 +54,11 @@ class Checklists(unittest.TestCase):
             questions_for("focus", "standard", "poetry")
 
     def test_every_lens_row_has_a_title(self):
-        from aa_investigation import TITLES
+        from aa_investigation import LENS_TABLES, TITLES
         self.assertTrue(all(key in TITLES for key in IDS))
-        self.assertEqual(LENSES, ("mechanism",))
+        self.assertEqual(LENSES, ("mechanism", "onboarding", "delta", "boundaries", "operations"))
+        for lens_name, rows in LENS_TABLES.items():
+            self.assertTrue(all(key in TITLES for key, _ in rows), lens_name)
 
 
 class Workspace(unittest.TestCase):
@@ -147,10 +149,11 @@ class Interfaces(unittest.TestCase):
         process = subprocess.run([sys.executable, str(MCP)], input=frames, capture_output=True, text=True, env=env, timeout=120, check=False)
         by_id = {r["id"]: r["result"] for r in map(json.loads, process.stdout.splitlines())}
         start_tool = next(t for t in by_id[1]["tools"] if t["name"] == "aa_start")
-        self.assertEqual(start_tool["inputSchema"]["properties"]["lens"]["enum"], ["mechanism"])
+        self.assertEqual(start_tool["inputSchema"]["properties"]["lens"]["enum"],
+                         ["mechanism", "onboarding", "delta", "boundaries", "operations"])
         self.assertFalse(by_id[2]["isError"])
         self.assertEqual(by_id[2]["structuredContent"]["result"]["lens"], "mechanism")
-        self.assertTrue(by_id[3]["isError"])  # a lens without a focus is refused
+        self.assertTrue(by_id[3]["isError"])  # a mechanism lens without a focus is refused
 
 
 class Documentation(unittest.TestCase):

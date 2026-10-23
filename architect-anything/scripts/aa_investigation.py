@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from aa_inventory import compare_inventory, inventory
 from aa_model import (
     PACKAGE,
+     SCHEMA,
     VERSION,
     json_text,
     read_json,
@@ -18,7 +19,7 @@ from aa_model import (
     text_digest,
     validate,
 )
-from aa_render import publish
+from aa_render import EMIT_PACKS, normalize_emits, publish
 
 CATCH_UP = [
     ("briefing", "What is this project now, who uses it, and what can it do?"),
@@ -60,12 +61,78 @@ MECHANISM = [
     ("choices", "What would someone building their own version have to decide for themselves?"),
     ("limits", "Where does it fail or stop being valid, and what remains unknown?")
 ]
+# The "onboarding" lens: orient a new maintainer or contributor rapidly with concrete entry points,
+# edit maps, local dev/test loops, and invariant landmines.
+ONBOARDING = [
+    ("briefing", "What is the 60-second mental model of this system and its core vocabulary?"),
+    ("entrypoints", "Where does execution start, and how is the system bootstrapped?"),
+    ("codemap", "Where should a developer look to add or modify key features?"),
+    ("devloop", "How is the project configured, run, tested and debugged locally?"),
+    ("invariants", "Which architectural invariants, ordering rules or landmines must not be broken?"),
+    ("limits", "What remains undocumented or requires live environment access to verify?")
+]
+# The "delta" lens: audit architectural drift, breaking changes, and migration impact.
+DELTA = [
+    ("summary", "What are the headline architectural and behavioral changes?"),
+    ("contracts", "Which public APIs, schemas, CLI flags, events or wire formats changed?"),
+    ("data", "How did state ownership, persistence formats or migration requirements change?"),
+    ("dependencies", "Which internal boundaries, external services or third-party dependencies shifted?"),
+    ("drift", "Where do existing docs, comments or configuration lag behind the current implementation?"),
+    ("risks", "What regression risks, compatibility hazards or unverified paths remain?")
+]
+# The "boundaries" lens: map trust boundaries, untrusted inputs, external calls, and privilege assumptions.
+BOUNDARIES = [
+    ("surface", "What are all external entry points and untrusted input channels into this scope?"),
+    ("trust", "Where are the trust, process, privilege and isolation boundaries?"),
+    ("validation", "How are untrusted inputs parsed, validated, escaped or sandboxed before use?"),
+    ("egress", "Which external network services, filesystems, subprocesses or IPC channels are invoked?"),
+    ("secrets", "How are credentials, tokens, keys and sensitive configuration loaded and scoped?"),
+    ("assumptions", "What security or isolation guarantees are assumed from the host environment?"),
+    ("limits", "Which attack surfaces or runtime behaviors were not verified in this static/bounded pass?")
+]
+# The "operations" lens: production readiness, state lifecycle, failure recovery, and observability.
+OPERATIONS_LENS = [
+    ("lifecycle", "How does the system initialize, warm up, accept work and drain on shutdown?"),
+    ("config", "Which environment variables, files and flags control runtime behavior, and in what precedence?"),
+    ("state", "Where does durable and ephemeral state live, and what are the concurrency/locking guarantees?"),
+    ("resilience", "How are timeouts, retries, backpressure, circuit breaking and partial failures handled?"),
+    ("observability", "What logs, metrics, traces, health checks or receipts are emitted for operators?"),
+    ("recovery", "How does the system recover from crashes, corrupt state or interrupted operations?"),
+    ("limits", "Which operational failure modes or scale limits remain untested?")
+]
+
 OVERVIEW_CATCH_UP = ("briefing", "components", "behavior", "changes", "assessment")
 OVERVIEW_FOCUS = ("answer", "trace", "limits")
 OVERVIEW_MECHANISM = ("answer", "essentials", "choices", "limits")
-LENSES = ("mechanism",)
+OVERVIEW_ONBOARDING = ("briefing", "entrypoints", "codemap", "invariants", "limits")
+OVERVIEW_DELTA = ("summary", "contracts", "drift", "risks")
+OVERVIEW_BOUNDARIES = ("surface", "trust", "egress", "limits")
+OVERVIEW_OPERATIONS = ("lifecycle", "config", "resilience", "recovery", "limits")
+
+LENSES = ("mechanism", "onboarding", "delta", "boundaries", "operations")
+FOCUS_ONLY_LENSES = ("mechanism",)
+LENS_TABLES = {
+    "mechanism": MECHANISM,
+    "onboarding": ONBOARDING,
+    "delta": DELTA,
+    "boundaries": BOUNDARIES,
+    "operations": OPERATIONS_LENS,
+}
+LENS_OVERVIEWS = {
+    "mechanism": OVERVIEW_MECHANISM,
+    "onboarding": OVERVIEW_ONBOARDING,
+    "delta": OVERVIEW_DELTA,
+    "boundaries": OVERVIEW_BOUNDARIES,
+    "operations": OVERVIEW_OPERATIONS,
+}
 # Sections on the owner-level reading path; every other section is collapsed technical detail.
-OWNER_LEVEL = ("briefing", "answer", "assessment", "limits", "essentials", "choices")
+OWNER_LEVEL = (
+    "briefing", "answer", "assessment", "limits", "essentials", "choices",
+    "entrypoints", "codemap", "invariants",
+    "summary", "contracts", "drift", "risks",
+    "surface", "trust",
+    "lifecycle", "resilience", "recovery",
+)
 DEPTHS = ("overview", "standard", "deep")
 DEFAULT_DEPTH = "standard"
 DEEP_NOTE_MINIMUM = 40
@@ -81,7 +148,18 @@ TITLES = {
     "modules": "Module reference", "build": "Build, configuration and release",
     "alternatives": "Related paths and configuration",
     "contract": "What goes in and what comes out", "essentials": "The essential part, and what is incidental",
-    "assumptions": "What it assumes from its host", "choices": "What you would decide for yourself"
+    "assumptions": "What it assumes from its host", "choices": "What you would decide for yourself",
+    "entrypoints": "Entry points and boot sequence", "codemap": "Where to find and change things",
+    "devloop": "Local development and verification loop", "invariants": "Invariants and architectural landmines",
+    "summary": "Headline architectural changes", "contracts": "Interface and contract changes",
+    "dependencies": "Dependency and boundary shifts", "drift": "Documentation versus implementation drift",
+    "risks": "Compatibility and regression risks",
+    "surface": "External entry points and input surface", "trust": "Trust and isolation boundaries",
+    "validation": "Input parsing, validation and escaping", "egress": "Outbound calls, subprocesses and IPC",
+    "secrets": "Credentials, secrets and sensitive state",
+    "lifecycle": "Startup, readiness and graceful shutdown", "config": "Configuration knobs and precedence",
+    "state": "State durability and concurrency", "resilience": "Timeouts, retries and backpressure",
+    "observability": "Logs, metrics, health and diagnostics", "recovery": "Crash recovery and state repair",
 }
 
 
@@ -91,14 +169,16 @@ def questions_for(mode, depth, lens=None):
         raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
     if lens is not None and lens not in LENSES:
         raise ValueError(f"Lens must be one of: {', '.join(LENSES)}")
-    if lens and mode != "focus":
+    if lens in FOCUS_ONLY_LENSES and mode != "focus":
         raise ValueError("A lens needs a focus: name the mechanism you want to understand")
-    base = MECHANISM if lens == "mechanism" else FOCUS if mode == "focus" else CATCH_UP
+    base = LENS_TABLES[lens] if lens else (FOCUS if mode == "focus" else CATCH_UP)
     if depth == "overview":
-        keep = OVERVIEW_MECHANISM if lens == "mechanism" else OVERVIEW_FOCUS if mode == "focus" else OVERVIEW_CATCH_UP
+        keep = LENS_OVERVIEWS[lens] if lens else (OVERVIEW_FOCUS if mode == "focus" else OVERVIEW_CATCH_UP)
         return [item for item in base if item[0] in keep]
     if depth == "deep":
-        return base + (DEEP_FOCUS if mode == "focus" else DEEP_CATCH_UP)
+        extra = DEEP_FOCUS if mode == "focus" else DEEP_CATCH_UP
+        existing_ids = {item[0] for item in base}
+        return list(base) + [item for item in extra if item[0] not in existing_ids]
     return list(base)
 
 
@@ -129,15 +209,16 @@ def prior_report(output, locator):
 
 
 def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=100000, max_bytes=268435456,
-          depth=DEFAULT_DEPTH, lens=None):
+          depth=DEFAULT_DEPTH, lens=None, emit=()):
     if depth not in DEPTHS:
         raise ValueError(f"Depth must be one of: {', '.join(DEPTHS)}")
     if focus is not None and not focus.strip():
         raise ValueError("A focus question cannot be blank")
     if lens is not None and lens not in LENSES:
         raise ValueError(f"Lens must be one of: {', '.join(LENSES)}")
-    if lens and focus is None:
+    if lens in FOCUS_ONLY_LENSES and focus is None:
         raise ValueError("A lens needs a focus: name the mechanism you want to understand")
+    selected_emits = normalize_emits(emit)
     if max_files < 1 or max_bytes < 0:
         raise ValueError("Inventory limits must be positive; max-bytes=0 permits unlimited streaming hashes")
     remote = urlparse(str(target)).scheme in ("http", "https")
@@ -177,8 +258,9 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
     identity = {"name": name, "kind": selected_kind, "locator": locator,
                 "revision": first["git"]["revision"] if first and first["git"] else None}
     questions = questions_for(mode, depth, lens)
+    default_label = focus.strip() if focus else (f"{lens} investigation" if lens else "project catch-up")
     report = {
-        "schema_version": 1, "title": f"{name}: {focus.strip() if focus else 'project catch-up'}",
+        "schema_version": 1, "title": f"{name}: {default_label}",
         "subtitle": "Working investigation. Findings have not yet been established.",
         "target": identity,
         "run": {"id": run_id, "captured_at": now.isoformat(), "status": "partial", "coverage": "unknown",
@@ -207,11 +289,16 @@ def start(target, output=None, focus=None, kind="auto", excludes=(), max_files=1
     }
     if lens:
         manifest["lens"] = lens
+    if selected_emits:
+        manifest["emit"] = selected_emits
     write_json(work/"investigation.json", manifest)
-    return {"workspace": str(work), "manifest": str(work/"investigation.json"), "report": str(work/"report.json"),
-            "mode": mode, "depth": depth, "lens": lens, "question": manifest["question"], "previous_report": previous,
-            "inventory_summary": {"files": len(first["files"]), "coverage": first["coverage"]} if first else None,
-            "next": "Investigate the checklist using the skill; author claims/sections and evidence, then run finish. This command has not analyzed architectural behavior or published a report."}
+    res = {"workspace": str(work), "manifest": str(work/"investigation.json"), "report": str(work/"report.json"),
+           "mode": mode, "depth": depth, "lens": lens, "question": manifest["question"], "previous_report": previous,
+           "inventory_summary": {"files": len(first["files"]), "coverage": first["coverage"]} if first else None,
+           "next": "Investigate the checklist using the skill; author claims/sections and evidence, then run finish. This command has not analyzed architectural behavior or published a report."}
+    if selected_emits:
+        res["emit"] = selected_emits
+    return res
 
 
 def load(workspace):
@@ -255,12 +342,15 @@ def next_step(data, report):
 def status(workspace):
     _, data = load(workspace)
     report = read_json(data["paths"]["report"])
-    return {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"], "depth": data["depth"],
-            "lens": data.get("lens"), "question": data["question"], "status": data["status"], "checklist": data["checklist"],
-            "remaining": [row["id"] for row in data["checklist"] if row["status"] == "unresolved"],
-            "report_validation": validate(report), "previous_report": data["previous_report"],
-            "next": next_step(data, report),
-            "notice": "This reads saved investigation state, not live target freshness. A valid model does not establish completeness; validate local evidence or start a new run to refresh."}
+    res = {"workspace": str(Path(data["paths"]["report"]).parent), "mode": data["mode"], "depth": data["depth"],
+           "lens": data.get("lens"), "question": data["question"], "status": data["status"], "checklist": data["checklist"],
+           "remaining": [row["id"] for row in data["checklist"] if row["status"] == "unresolved"],
+           "report_validation": validate(report), "previous_report": data["previous_report"],
+           "next": next_step(data, report),
+           "notice": "This reads saved investigation state, not live target freshness. A valid model does not establish completeness; validate local evidence or start a new run to refresh."}
+    if data.get("emit"):
+        res["emit"] = data["emit"]
+    return res
 
 
 CHECKLIST_STATUSES = ("unresolved", "answered", "partial", "not-applicable")
@@ -355,9 +445,182 @@ def cite(workspace, path, lines=None, ident=None, kind="source", note="", append
     return {"evidence": record, "appended": append, "already_present": False, "report": str(report_path)}
 
 
-def finish(workspace, partial=False):
+def _prune_unused_scaffold(report):
+    """Remove unused *-unknown scaffold claims and auto-clear SCAFFOLD_LIMITATION when all sections are authored."""
+    used_claims = set()
+    for s in report["sections"]:
+        used_claims.update(s["claims"])
+    for d in report["diagrams"]:
+        for item in d["nodes"] + d["edges"]:
+            used_claims.update(item["claims"])
+    report["claims"] = [
+        c for c in report["claims"]
+        if not (c["id"].endswith("-unknown") and c["authority"] == "unknown"
+                and c["text"].endswith("Not established yet.") and c["id"] not in used_claims)
+    ]
+    still_scaffold = any(
+        s["body"] == ["This topic has not been investigated."]
+        or any(c.endswith("-unknown") for c in s["claims"])
+        for s in report["sections"]
+    )
+    if not still_scaffold and SCAFFOLD_LIMITATION in report["run"]["limitations"]:
+        report["run"]["limitations"] = [l for l in report["run"]["limitations"] if l != SCAFFOLD_LIMITATION]
+
+
+def upsert_claim(workspace, claim_id, text, authority="observation", freshness="verified", evidence=()):
+    """Add or update one claim in the working report with immediate schema and evidence validation."""
+    _, data = load(workspace)
+    report_path = Path(data["paths"]["report"])
+    report = read_json(report_path)
+    ev_ids = {e["id"] for e in report["evidence"]}
+    ev_list = list(evidence or ())
+    for ref in ev_list:
+        if ref not in ev_ids:
+            raise ValueError(f"Claim {claim_id!r} references missing evidence ID {ref!r}")
+    if authority != "unknown" and not ev_list:
+        raise ValueError(f"Claim {claim_id!r} with authority {authority!r} requires at least one evidence ID")
+    record = {"id": claim_id, "text": text, "authority": authority, "freshness": freshness, "evidence": ev_list}
+    errors = schema_errors(record, SCHEMA["properties"]["claims"]["items"], f"$.claims[{claim_id}]")
+    if errors:
+        raise ValueError("Invalid claim: " + "; ".join(errors))
+    idx = next((i for i, c in enumerate(report["claims"]) if c["id"] == claim_id), None)
+    action = "updated" if idx is not None else "added"
+    if idx is not None:
+        report["claims"][idx] = record
+    else:
+        report["claims"].append(record)
+    write_json(report_path, report)
+    return {"action": action, "claim": record, "total_claims": len(report["claims"]), "report": str(report_path)}
+
+
+def upsert_section(workspace, section_id, title=None, body=(), claims=(), detail=None, freshness="verified", table=None):
+    """Add or update one section in the working report, pruning replaced scaffold placeholders automatically."""
+    _, data = load(workspace)
+    report_path = Path(data["paths"]["report"])
+    report = read_json(report_path)
+    claim_map = {c["id"]: c for c in report["claims"]}
+    claim_list = list(claims or ())
+    if not claim_list:
+        raise ValueError(f"Section {section_id!r} must cite at least one claim ID")
+    for ref in claim_list:
+        if ref not in claim_map:
+            raise ValueError(f"Section {section_id!r} references missing claim ID {ref!r}")
+    if freshness == "verified" and any(claim_map[c]["freshness"] != "verified" for c in claim_list):
+        raise ValueError(f"Verified section {section_id!r} cannot cite stale or unverified claims")
+    idx = next((i for i, s in enumerate(report["sections"]) if s["id"] == section_id), None)
+    existing = report["sections"][idx] if idx is not None else None
+    resolved_title = title if title is not None else (existing["title"] if existing else TITLES.get(section_id, section_id))
+    resolved_detail = detail if detail is not None else (existing["detail"] if existing else (section_id not in OWNER_LEVEL))
+    body_list = [body] if isinstance(body, str) else list(body or ())
+    if not body_list:
+        raise ValueError(f"Section {section_id!r} requires at least one body paragraph")
+    record = {"id": section_id, "title": resolved_title, "body": body_list, "claims": claim_list,
+              "detail": bool(resolved_detail), "freshness": freshness}
+    if table is not None:
+        if not isinstance(table, dict) or "columns" not in table or "rows" not in table:
+            raise ValueError("Section table must be an object with 'columns' and 'rows'")
+        if any(len(r) != len(table["columns"]) for r in table["rows"]):
+            raise ValueError(f"Section {section_id!r}: table row width mismatch")
+        record["table"] = table
+    errors = schema_errors(record, SCHEMA["properties"]["sections"]["items"], f"$.sections[{section_id}]")
+    if errors:
+        raise ValueError("Invalid section: " + "; ".join(errors))
+    action = "updated" if idx is not None else "added"
+    if idx is not None:
+        report["sections"][idx] = record
+    else:
+        report["sections"].append(record)
+    _prune_unused_scaffold(report)
+    write_json(report_path, report)
+    return {"action": action, "section": record, "scaffold_cleared": SCAFFOLD_LIMITATION not in report["run"]["limitations"],
+            "report": str(report_path)}
+
+
+def upsert_diagram(workspace, diagram_id, title, kind, nodes, edges, freshness="verified"):
+    """Add or update one diagram in the working report with immediate structural validation."""
+    _, data = load(workspace)
+    report_path = Path(data["paths"]["report"])
+    report = read_json(report_path)
+    claim_map = {c["id"]: c for c in report["claims"]}
+    record = {"id": diagram_id, "title": title, "kind": kind, "freshness": freshness,
+              "nodes": list(nodes or ()), "edges": list(edges or ())}
+    errors = schema_errors(record, SCHEMA["properties"]["diagrams"]["items"], f"$.diagrams[{diagram_id}]")
+    if errors:
+        raise ValueError("Invalid diagram: " + "; ".join(errors))
+    node_ids = {n["id"] for n in record["nodes"]}
+    if len(node_ids) != len(record["nodes"]):
+        raise ValueError(f"Diagram {diagram_id!r} has duplicate node IDs")
+    for item in record["nodes"] + record["edges"]:
+        if not item.get("claims"):
+            raise ValueError(f"Diagram {diagram_id!r}: every node and edge must cite at least one claim")
+        for ref in item["claims"]:
+            if ref not in claim_map:
+                raise ValueError(f"Diagram {diagram_id!r} references missing claim ID {ref!r}")
+        if freshness == "verified" and any(claim_map[c]["freshness"] != "verified" for c in item["claims"]):
+            raise ValueError(f"Verified diagram {diagram_id!r} cannot cite stale or unverified claims")
+    for edge in record["edges"]:
+        if edge["from"] not in node_ids or edge["to"] not in node_ids:
+            raise ValueError(f"Diagram {diagram_id!r} has dangling edge {edge['from']!r} -> {edge['to']!r}")
+    idx = next((i for i, d in enumerate(report["diagrams"]) if d["id"] == diagram_id), None)
+    action = "updated" if idx is not None else "added"
+    if idx is not None:
+        report["diagrams"][idx] = record
+    else:
+        report["diagrams"].append(record)
+    _prune_unused_scaffold(report)
+    write_json(report_path, report)
+    return {"action": action, "diagram": record, "total_diagrams": len(report["diagrams"]), "report": str(report_path)}
+
+
+def set_run_meta(workspace, title=None, subtitle=None, target_name=None, run_status=None,
+                 coverage=None, limitations=None, changes=None, tools=None):
+    """Update top-level report metadata and run status/coverage/limitations safely."""
+    _, data = load(workspace)
+    report_path = Path(data["paths"]["report"])
+    report = read_json(report_path)
+    if title is not None:
+        if not str(title).strip():
+            raise ValueError("Report title cannot be blank")
+        report["title"] = str(title).strip()
+    if subtitle is not None:
+        report["subtitle"] = str(subtitle).strip()
+    if target_name is not None:
+        if not str(target_name).strip():
+            raise ValueError("Target name cannot be blank")
+        report["target"]["name"] = str(target_name).strip()
+    if run_status is not None:
+        if run_status not in ("complete", "partial", "interrupted"):
+            raise ValueError("run_status must be complete, partial, or interrupted")
+        report["run"]["status"] = run_status
+    if coverage is not None:
+        if coverage not in ("complete", "partial", "unknown"):
+            raise ValueError("coverage must be complete, partial, or unknown")
+        report["run"]["coverage"] = coverage
+    if limitations is not None:
+        report["run"]["limitations"] = [str(x).strip() for x in limitations if str(x).strip()]
+    if changes is not None:
+        clean_changes = [str(x).strip() for x in changes if str(x).strip()]
+        if clean_changes:
+            report["run"]["changes"] = clean_changes
+        else:
+            report["run"].pop("changes", None)
+    if tools is not None:
+        clean_tools = [str(x).strip() for x in tools if str(x).strip()]
+        if clean_tools:
+            report["run"]["tools"] = clean_tools
+    _prune_unused_scaffold(report)
+    errors = schema_errors(report)
+    if errors:
+        raise ValueError("Invalid report metadata: " + "; ".join(errors))
+    write_json(report_path, report)
+    return {"title": report["title"], "subtitle": report["subtitle"], "target": report["target"],
+            "run": report["run"], "report": str(report_path)}
+
+
+def finish(workspace, partial=False, emit=()):
     manifest_path, data = load(workspace)
     report = read_json(data["paths"]["report"])
+    selected_emits = normalize_emits(list(data.get("emit", ())) + list(emit or ()))
     if SCAFFOLD_LIMITATION in report["run"]["limitations"]:
         raise ValueError("The working report is still an uninvestigated scaffold. Author actual findings or an explicit blocked/interrupted account before publishing.")
     if report["run"]["id"] != data["id"] or any(
@@ -412,7 +675,10 @@ def finish(workspace, partial=False):
             if not partial:
                 raise ValueError(notice+" The working report was marked partial; no snapshot was published.")
     write_json(data["paths"]["report"], report)
-    result = publish(report, output, check_files=True)
+    prior = read_json(data["previous_report"]) if data.get("previous_report") and Path(data["previous_report"]).is_file() else None
+    result = publish(report, output, check_files=True, emit=selected_emits, prior_report=prior)
     data["status"] = report["run"]["status"]
+    if selected_emits:
+        data["emit"] = selected_emits
     write_json(manifest_path, data)
     return result

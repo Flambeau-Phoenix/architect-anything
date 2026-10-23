@@ -9,7 +9,12 @@
     "id": {"type": "string", "pattern": "^run-[A-Za-z0-9_-]+$"},
     "mode": {"enum": ["catch-up", "focus"]},
     "depth": {"enum": ["overview", "standard", "deep"]},
-    "lens": {"enum": ["mechanism"]},
+    "lens": {"enum": ["mechanism", "onboarding", "delta", "boundaries", "operations"]},
+    "emit": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["mermaid", "adr", "onboarding", "delta", "llms-txt"]}
+    },
     "question": {"type": ["string", "null"]},
     "target": {"type": "object"},
     "created_at": {"type": "string", "format": "date-time"},

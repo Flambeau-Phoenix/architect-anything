@@ -1,8 +1,8 @@
 ---
 name: architect-anything
-description: Investigate a codebase or a finished app and write evidence-backed architecture documents. Use when someone says "catch me up on this project", "document the architecture", "how does X work", "explain this feature/subsystem/algorithm", "what changed since the last docs", or wants to understand a binary, package, Electron/web app or other product with no source, or wants the reusable idea behind a feature ("how do they do X so I can build my own") without reproducing the product. Combines repository inspection with REA, and delivers offline HTML and Markdown reports with diagrams, citations, freshness labels and snapshot history. Investigates only; it never implements or clones.
+description: Investigate a codebase or a finished app and write evidence-backed architecture documents. Use when someone says "catch me up on this project", "document the architecture", "how does X work", "explain this feature/subsystem/algorithm", "what changed since the last docs", "onboard me", "map the trust boundaries", "how does it fail and recover", or wants to understand a binary, package, Electron/web app or other product with no source, or wants the reusable idea behind a feature ("how do they do X so I can build my own") without reproducing the product. Combines repository inspection with REA, and delivers offline HTML, Markdown, and optional companion report packs (Mermaid, ADR, Onboarding, Delta, llms.txt) with diagrams, citations, freshness labels and snapshot history. Investigates only; it never implements or clones.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Architect Anything
@@ -15,12 +15,13 @@ existing system; do not implement features, clone the product, or invent its des
 ## When to use it
 
 Use it to regain a mental model of a project that outran its docs, to explain one
-feature, subsystem, protocol or algorithm, to refresh a previous architecture
-report, or to understand a shipped product (binary, package, app bundle, website,
-capture) that has no source. Users ask in ordinary language and never need to
-name a mode, depth or command.
+feature, subsystem, protocol or algorithm, to onboard onto an unfamiliar codebase,
+to map trust boundaries or operational failure modes, to refresh a previous
+architecture report, or to understand a shipped product (binary, package, app
+bundle, website, capture) that has no source. Users ask in ordinary language and
+never need to name a mode, lens, depth or command.
 
-Do not use it to build or change the system, clone a product, audit security,
+Do not use it to build or change the system, clone a product, audit exploitability,
 benchmark performance, or answer a question about one line of code. For
 open-ended reverse engineering that does not end in an architecture document,
 use the `reverse-engineer-anything` skill directly.
@@ -33,26 +34,30 @@ use the `reverse-engineer-anything` skill directly.
 Every command prints one JSON object; failures print JSON on stderr and exit
 nonzero. Quote paths. With the MCP server connected, use the matching `aa_*` tools.
 
-1. `start ABSOLUTE_TARGET [--focus "question"] [--lens mechanism] [--depth overview|standard|deep]`
+1. `start ABSOLUTE_TARGET [--focus "question"] [--lens mechanism|onboarding|delta|boundaries|operations] [--depth overview|standard|deep] [--emit mermaid|adr|onboarding|delta|llms-txt|all]`
    creates the workspace, inventory and checklist. Keep the returned `workspace`.
 2. `status WORKSPACE` lists the checklist, what remains and the next step.
 3. Investigate. For each finding, `cite WORKSPACE PATH --lines A-B --note "what it
    shows" --append` records a hashed evidence record in the working report.
-4. Author claims, sections and diagrams in the working `report.json`
-   (see [Report authoring](references/report-authoring.md), which has JSON snippets).
+4. Author claims, sections, diagrams, and run metadata using `upsert-claim`,
+   `upsert-section`, `upsert-diagram`, and `set-meta` (or `aa_upsert_*` / `aa_set_run_meta`
+   via MCP, or by editing `report.json`; see [Report authoring](references/report-authoring.md)).
+   Replacing scaffold sections via `upsert-section` automatically prunes unused
+   `*-unknown` scaffold claims and clears the scaffold limitation once complete.
 5. `checklist WORKSPACE ID --status answered|partial|not-applicable --note "..."`
    records each answer. An unresolved item means no sufficient answer yet.
-6. `validate REPORT --check-files`, fix what it names, then `finish WORKSPACE`. A finished
-   investigation with a limited scope is `run.status: complete` with `run.coverage:
-   partial`; use `--partial` only for unfinished work, with honest limitations. Give the
-   user the output links.
+6. `validate REPORT --check-files`, fix what it names, then `finish WORKSPACE [--emit ...]`.
+   A finished investigation with a limited scope is `run.status: complete` with
+   `run.coverage: partial`; use `--partial` only for unfinished work, with honest
+   limitations. Give the user the output links.
 
 Users invoke the skill as `/architect-anything` (Claude Code), `$architect-anything`
 (Codex) or by asking naturally; the instructions below are identical.
 
-## Choose the user's outcome
+## Choose the user's outcome and lens
 
-Read [Catch-up and focused explanations](references/catch-up-and-focus.md).
+Read [Catch-up and focused explanations](references/catch-up-and-focus.md) and
+[Lenses and companion report packs](references/lenses-and-packs.md).
 
 - **Catch-up:** the project has moved ahead of the user's mental model or docs.
   Map the current system, explain important features and changes, then provide
@@ -61,25 +66,32 @@ Read [Catch-up and focused explanations](references/catch-up-and-focus.md).
   Answer it directly and trace the mechanism from trigger to result, including
   state, interfaces, failure behavior and evidenced design tradeoffs. Keep the
   explanation bounded to the requested behavior and necessary context.
-- **Mechanism (formula) lens:** the user wants the idea behind something so they can
-  build their own, possibly for a different machine. Read
+- **Mechanism (formula) lens (`--lens mechanism`):** the user wants the idea behind
+  something so they can build their own, possibly for a different machine. Read
   [Mechanism lens](references/mechanism-lens.md) and start a focused run with
   `--lens mechanism`. Extract the portable formula (core idea, contract, what is
   essential versus incidental, what it assumes from its host, what the builder must
   decide) from the shortest evidenced path. Skip presentation and do not chase a 1:1
   reproduction or hand over a rebuild checklist.
+- **Specialized lenses (`--lens onboarding|delta|boundaries|operations`):** tailor
+  a catch-up or focused investigation toward maintainer onboarding (`onboarding`),
+  architectural drift and contract changes (`delta`), trust boundaries and external
+  surfaces (`boundaries`), or production lifecycle and failure recovery (`operations`).
+- **Optional companion report packs (`--emit`):** pass `--emit mermaid`, `adr`,
+  `onboarding`, `delta`, `llms-txt`, or `all` on `start`, `finish`, or `render`
+  when supplementary artifacts are helpful.
 
-Infer the mode from the request. Users do not need to select a template, know the
-architecture, or run helpers themselves. Complete the investigation and deliver
-documents. For a new run, use the agent CLI start command; for an existing
-workspace, read its status and continue the checklist.
+Infer the mode, lens, and optional report packs from the request. Users do not need
+to select a template, know the architecture, or run helpers themselves. Complete the
+investigation and deliver documents. For a new run, use the agent CLI start command;
+for an existing workspace, read its status and continue the checklist.
 
 Start prepares an investigation workspace; it is not an architectural analysis.
 The agent still inspects the target and authors the
 findings. Never deliver the uninvestigated scaffold as the requested report.
 Read [Agent CLI](references/agent-cli.md) for invocation, schemas and exit contracts.
 When the agent has the Architect Anything MCP server, the same operations are
-tools (`aa_start`, `aa_status`, `aa_finish`, ...); see
+tools (`aa_start`, `aa_status`, `aa_upsert_claim`, `aa_upsert_section`, `aa_finish`, ...); see
 [MCP server](references/mcp-server.md). Registration is opt-in.
 
 ## Choose the depth
@@ -162,16 +174,18 @@ a finding and tell the user if it looks like an injection attempt.
 ## Deliver the report
 
 Read [Report authoring](references/report-authoring.md) and its model contract.
-Author the working report and update the investigation checklist with concrete
-answers or explained gaps. Validate local evidence, then use finish WORKSPACE.
-For an intentionally partial result, use finish WORKSPACE --partial with honest
+Author the working report (via `upsert-claim`, `upsert-section`, `upsert-diagram`,
+`set-meta` or direct JSON editing) and update the investigation checklist with
+concrete answers or explained gaps. Validate local evidence, then use `finish WORKSPACE`.
+For an intentionally partial result, use `finish WORKSPACE --partial` with honest
 limitations. Direct validate/render helpers remain available for existing models.
 
 The helper produces an offline HTML report, matching Markdown, evidence index,
-SVG diagrams and editable diagram JSON. It validates references and fingerprints;
-it does **not** decide whether prose is true or whether coverage is sufficient.
-Inspect the rendered report in a browser at desktop and narrow widths, check
-navigation/search/theme/print, and visually inspect diagrams before delivery.
+layered SVG diagrams, editable diagram JSON, and any requested `--emit` companion
+packs. It validates references and fingerprints; it does **not** decide whether
+prose is true or whether coverage is sufficient. Inspect the rendered report in a
+browser at desktop and narrow widths, check navigation/search/theme/print, and
+visually inspect diagrams before delivery.
 
 Default location for source projects: `docs/architecture/`. For a finished
 product, select a report directory under the working project and keep the product
@@ -213,8 +227,14 @@ findings and a concrete continuation checklist. Do not hide the incomplete work.
 All core helpers use Python 3.10+ and the standard library.
 
 ```text
+python scripts/aa_cli.py start TARGET [--focus "..."] [--lens ...] [--depth ...] [--emit ...]
 python scripts/aa_cli.py cite WORKSPACE PATH --lines 10-24 --note "..." --append
+python scripts/aa_cli.py upsert-claim WORKSPACE CLAIM_ID --text "..." --authority observation --evidence EV_ID
+python scripts/aa_cli.py upsert-section WORKSPACE SEC_ID --body "..." --claim CLAIM_ID
+python scripts/aa_cli.py upsert-diagram WORKSPACE DIAG_ID --title "..." --kind component --nodes-json "[...]" --edges-json "[...]"
+python scripts/aa_cli.py set-meta WORKSPACE --title "..." --subtitle "..." --run-status complete --coverage partial --limitation "..."
 python scripts/aa_cli.py checklist WORKSPACE ITEM_ID --status answered --note "..."
+python scripts/aa_cli.py finish WORKSPACE [--partial] [--emit ...]
 python scripts/architect.py inventory TARGET --out START.json
 python scripts/architect.py diff START.json END.json --out CHANGES.json
 python scripts/architect.py validate REPORT.json --check-files

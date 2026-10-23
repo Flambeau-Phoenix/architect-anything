@@ -18,8 +18,12 @@ from aa_investigation import (
     cite,
     finish,
     set_checklist,
+    set_run_meta,
     start,
     status,
+    upsert_claim,
+    upsert_diagram,
+    upsert_section,
 )
 from aa_model import (
     PACKAGE,
@@ -30,7 +34,7 @@ from aa_model import (
     read_json,
     validate,
 )
-from aa_render import publish
+from aa_render import EMIT_PACKS, publish
 from install import HOSTS
 
 
@@ -57,8 +61,9 @@ def parser():
     begin.add_argument("--depth", choices=list(DEPTHS), default=DEFAULT_DEPTH,
                        help="overview: owner-level answer; standard: full walkthrough; deep: verbose technical reference")
     begin.add_argument("--lens", choices=list(LENSES),
-                       help="mechanism: extract the portable formula of how it works (needs --focus), "
-                            "not a full account of the product")
+                       help="Specialized investigation lens: mechanism (requires --focus), onboarding, delta, boundaries, or operations")
+    begin.add_argument("--emit", action="append", default=[],
+                       help=f"Optional companion report packs ({', '.join(EMIT_PACKS)} or 'all')")
     begin.add_argument("--exclude", action="append", default=[])
     begin.add_argument("--max-files", type=int, default=100000)
     begin.add_argument("--max-file-bytes", type=int, default=268435456)
@@ -77,9 +82,51 @@ def parser():
     ref.add_argument("--kind", choices=list(CITE_KINDS), default="source")
     ref.add_argument("--note", default="", help="What this evidence shows")
     ref.add_argument("--append", action="store_true", help="Add the record to the working report's evidence list")
+
+    claim_cmd = commands.add_parser("upsert-claim", help="Add or update a claim in the working report")
+    claim_cmd.add_argument("workspace")
+    claim_cmd.add_argument("id", help="Stable claim ID")
+    claim_cmd.add_argument("--text", required=True, help="Plain-text assertion")
+    claim_cmd.add_argument("--authority", choices=["observation", "derived", "inference", "contradiction", "unknown"],
+                           default="observation")
+    claim_cmd.add_argument("--freshness", choices=["verified", "stale", "unverified"], default="verified")
+    claim_cmd.add_argument("--evidence", action="append", default=[], help="Supporting evidence ID (repeatable)")
+
+    sec_cmd = commands.add_parser("upsert-section", help="Add or update a section in the working report")
+    sec_cmd.add_argument("workspace")
+    sec_cmd.add_argument("id", help="Stable section ID")
+    sec_cmd.add_argument("--title", help="Section heading; defaults to existing or built-in title")
+    sec_cmd.add_argument("--body", action="append", required=True, help="Body paragraph (repeatable)")
+    sec_cmd.add_argument("--claim", dest="claims", action="append", required=True, help="Cited claim ID (repeatable)")
+    sec_cmd.add_argument("--detail", choices=["true", "false"], help="Collapse as technical detail")
+    sec_cmd.add_argument("--freshness", choices=["verified", "stale", "unverified"], default="verified")
+    sec_cmd.add_argument("--table-json", help="Optional JSON object with 'columns' and 'rows'")
+
+    diag_cmd = commands.add_parser("upsert-diagram", help="Add or update a diagram in the working report")
+    diag_cmd.add_argument("workspace")
+    diag_cmd.add_argument("id", help="Stable diagram ID")
+    diag_cmd.add_argument("--title", required=True, help="Diagram title")
+    diag_cmd.add_argument("--kind", required=True, choices=["context", "component", "sequence", "data", "state"])
+    diag_cmd.add_argument("--nodes-json", required=True, help="JSON array of {id, label, claims}")
+    diag_cmd.add_argument("--edges-json", required=True, help="JSON array of {from, to, label, claims}")
+    diag_cmd.add_argument("--freshness", choices=["verified", "stale", "unverified"], default="verified")
+
+    meta_cmd = commands.add_parser("set-meta", help="Update working report title, subtitle, status, coverage, limitations, or changes")
+    meta_cmd.add_argument("workspace")
+    meta_cmd.add_argument("--title")
+    meta_cmd.add_argument("--subtitle")
+    meta_cmd.add_argument("--target-name")
+    meta_cmd.add_argument("--run-status", choices=["complete", "partial", "interrupted"])
+    meta_cmd.add_argument("--coverage", choices=["complete", "partial", "unknown"])
+    meta_cmd.add_argument("--limitation", dest="limitations", action="append")
+    meta_cmd.add_argument("--change", dest="changes", action="append")
+    meta_cmd.add_argument("--tool", dest="tools", action="append")
+
     end = commands.add_parser("finish", help="Check collection state and publish the authored report")
     end.add_argument("workspace")
     end.add_argument("--partial", action="store_true", help="Explicitly publish documented remaining gaps")
+    end.add_argument("--emit", action="append", default=[],
+                     help=f"Optional companion report packs ({', '.join(EMIT_PACKS)} or 'all')")
     schema = commands.add_parser("schema", help="Return a machine-readable contract")
     schema.add_argument("subject", choices=["report", "investigation", "commands"], default="commands", nargs="?")
     inv = commands.add_parser("inventory", help="Fingerprint selected local files")
@@ -97,6 +144,8 @@ def parser():
     render = commands.add_parser("render", help="Publish an authored model without an investigation workspace")
     render.add_argument("report")
     render.add_argument("--output", required=True)
+    render.add_argument("--emit", action="append", default=[],
+                        help=f"Optional companion report packs ({', '.join(EMIT_PACKS)} or 'all')")
     rea = commands.add_parser("rea", help="Use an existing REA CLI through its configured bridge")
     actions = rea.add_subparsers(dest="rea_action", required=True)
     for name in ("status", "run"):
@@ -136,15 +185,28 @@ def write_result(path, result):
 def run(args, p):
     if args.command == "start":
         return start(args.target, args.output, args.focus, args.kind, args.exclude, args.max_files,
-                     args.max_file_bytes, args.depth, args.lens)
+                     args.max_file_bytes, args.depth, args.lens, args.emit)
     if args.command == "status":
         return status(args.workspace)
     if args.command == "checklist":
         return set_checklist(args.workspace, args.item, args.status, args.note)
     if args.command == "cite":
         return cite(args.workspace, args.path, args.lines, args.ident, args.kind, args.note, args.append)
+    if args.command == "upsert-claim":
+        return upsert_claim(args.workspace, args.id, args.text, args.authority, args.freshness, args.evidence)
+    if args.command == "upsert-section":
+        detail_val = None if args.detail is None else (args.detail == "true")
+        table_val = json.loads(args.table_json) if args.table_json else None
+        return upsert_section(args.workspace, args.id, args.title, args.body, args.claims, detail_val, args.freshness, table_val)
+    if args.command == "upsert-diagram":
+        nodes_val = json.loads(args.nodes_json)
+        edges_val = json.loads(args.edges_json)
+        return upsert_diagram(args.workspace, args.id, args.title, args.kind, nodes_val, edges_val, args.freshness)
+    if args.command == "set-meta":
+        return set_run_meta(args.workspace, args.title, args.subtitle, args.target_name, args.run_status,
+                            args.coverage, args.limitations, args.changes, args.tools)
     if args.command == "finish":
-        return finish(args.workspace, args.partial)
+        return finish(args.workspace, args.partial, args.emit)
     if args.command == "schema":
         return SCHEMA if args.subject == "report" else (
             read_json(PACKAGE/"assets/investigation.schema.json") if args.subject == "investigation" else command_contract(p))
@@ -166,7 +228,7 @@ def run(args, p):
             raise CommandError("validation_failed", "Report validation failed", 1, result)
         return result
     if args.command == "render":
-        return publish(read_json(args.report), args.output)
+        return publish(read_json(args.report), args.output, emit=args.emit)
     if args.command == "rea":
         command = [sys.executable, str(PACKAGE/"scripts/rea_bridge.py"), args.rea_action]
         if args.config:
